@@ -1,11 +1,12 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const createRoleSchema = z.object({
   body: z.object({
-    name: z.string()
+    name: z
+      .string()
       .trim()
-      .min(2, 'El nombre del rol debe tener al menos 2 caracteres')
-      .max(50, 'El nombre del rol no puede exceder los 50 caracteres'),
+      .min(2, "El nombre del rol debe tener al menos 2 caracteres")
+      .max(50, "El nombre del rol no puede exceder los 50 caracteres"),
     description: z.string().trim().optional(),
   }),
   query: z.any(),
@@ -13,19 +14,26 @@ export const createRoleSchema = z.object({
 });
 
 export const updateRoleSchema = z.object({
-  body: z.object({
-    name: z.string()
-      .trim()
-      .min(2, 'El nombre del rol debe tener al menos 2 caracteres')
-      .max(50, 'El nombre del rol no puede exceder los 50 caracteres')
-      .optional(),
-    description: z.string().trim().optional(),
-  }).refine(data => data.name !== undefined || data.description !== undefined, {
-    message: 'Debe proporcionar al menos un campo para actualizar (name o description)'
-  }),
+  body: z
+    .object({
+      name: z
+        .string()
+        .trim()
+        .min(2, "El nombre del rol debe tener al menos 2 caracteres")
+        .max(50, "El nombre del rol no puede exceder los 50 caracteres")
+        .optional(),
+      description: z.string().trim().optional(),
+    })
+    .refine(
+      (data) => data.name !== undefined || data.description !== undefined,
+      {
+        message:
+          "Debe proporcionar al menos un campo para actualizar (name o description)",
+      },
+    ),
   query: z.any(),
   params: z.object({
-    id: z.string().uuid('El ID proporcionado no es un UUID válido'),
+    id: z.string().uuid("El ID proporcionado no es un UUID válido"),
   }),
 });
 
@@ -33,7 +41,7 @@ export const roleIdParamSchema = z.object({
   body: z.any(),
   query: z.any(),
   params: z.object({
-    id: z.string().uuid('El ID proporcionado no es un UUID válido'),
+    id: z.string().uuid("El ID proporcionado no es un UUID válido"),
   }),
 });
 
@@ -49,6 +57,10 @@ export const getRolesQuerySchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).catch(10),
 
     // Si el filtro de nombre llega como string vacío desde Swagger, lo descartamos
-    name: z.string().trim().transform(v => v === '' ? undefined : v).optional(),
+    name: z
+      .string()
+      .trim()
+      .transform((v) => (v === "" ? undefined : v))
+      .optional(),
   }),
 });
