@@ -4,8 +4,9 @@ const uuidSchema = z.string().uuid("El ID proporcionado no es un UUID válido");
 const statusValues = ["active", "inactive", "suspended"];
 
 const phoneRegex = /^\+?[0-9\s\-\.]{7,20}$/;
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+// La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.
+// Los símbolos son opcionales para mayor usabilidad.
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 export const createUserSchema = z.object({
   body: z.object({
@@ -34,13 +35,14 @@ export const createUserSchema = z.object({
       .trim()
       .regex(
         passwordRegex,
-        "La contraseña debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y símbolos",
+        "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número",
       ),
     profile_picture_url: z
       .string()
       .trim()
       .url("La URL de la foto de perfil no es válida")
-      .optional(),
+      .nullish()
+      .transform((val) => val ?? null),
   }),
   query: z.any(),
   params: z.any(),
@@ -106,16 +108,31 @@ export const updateUserSchema = z.object({
         .trim()
         .regex(phoneRegex, "El teléfono no tiene un formato válido")
         .optional(),
+      password: z
+        .string()
+        .trim()
+        .regex(
+          passwordRegex,
+          "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número",
+        )
+        .optional(),
       profile_picture_url: z
         .string()
         .trim()
         .url("La URL de la foto de perfil no es válida")
-        .optional(),
-      status: z.enum(statusValues).optional(),
+        .nullish()
+        .transform((val) => val ?? null),
     })
-    .refine((data) => Object.keys(data).length > 0, {
-      message: "Debe proporcionar al menos un campo para actualizar",
-    }),
+    .refine(
+      (data) => {
+        // Ignore profile_picture_url if it was transformed to null from undefined
+        const keys = Object.keys(data).filter(
+          (k) => data[k] !== undefined,
+        );
+        return keys.length > 0;
+      },
+      { message: "Debe proporcionar al menos un campo para actualizar" },
+    ),
   query: z.any(),
   params: z.object({
     id: uuidSchema,
@@ -124,10 +141,12 @@ export const updateUserSchema = z.object({
 
 export const changeStatusSchema = z.object({
   body: z.object({
-    status: z.enum(
-      statusValues,
-      "El estado debe ser active, inactive o suspended",
-    ),
+    // Second arg to z.enum() must be an options object, not a plain string
+    status: z.enum(statusValues, {
+      errorMap: () => ({
+        message: "El estado debe ser: active, inactive o suspended",
+      }),
+    }),
   }),
   query: z.any(),
   params: z.object({

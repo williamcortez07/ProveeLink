@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import * as userRepository from "../users/userRepository.js";
 import * as roleRepository from "../roles/repositories/roleRepository.js";
 import { AppError } from "../../utils/AppError.js";
@@ -118,7 +118,16 @@ export const updateUserService = async (id, updateData) => {
   }
 
   const fieldsToUpdate = { ...updateData };
-  delete fieldsToUpdate.password;
+
+  // If a new password is provided, hash it before storing.
+  // Remove the plain `password` key and replace with `password_hash`.
+  if (fieldsToUpdate.password) {
+    fieldsToUpdate.password_hash = await bcrypt.hash(
+      fieldsToUpdate.password,
+      SALT_ROUNDS,
+    );
+  }
+  delete fieldsToUpdate.password; // never let raw password reach the repository
 
   const updatedUser = await userRepository.updateUser(id, fieldsToUpdate);
   return updatedUser;
