@@ -118,16 +118,13 @@ export const updateUserService = async (id, updateData) => {
   }
 
   const fieldsToUpdate = { ...updateData };
-
-  // If a new password is provided, hash it before storing.
-  // Remove the plain `password` key and replace with `password_hash`.
   if (fieldsToUpdate.password) {
     fieldsToUpdate.password_hash = await bcrypt.hash(
       fieldsToUpdate.password,
       SALT_ROUNDS,
     );
   }
-  delete fieldsToUpdate.password; // never let raw password reach the repository
+  delete fieldsToUpdate.password;
 
   const updatedUser = await userRepository.updateUser(id, fieldsToUpdate);
   return updatedUser;

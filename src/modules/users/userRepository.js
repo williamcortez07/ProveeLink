@@ -43,8 +43,6 @@ export const createUser = async ({
   status,
 }) => {
   try {
-    // INSERT only returns the new id; RETURNING cannot reference JOIN aliases (r.name),
-    // so we fetch the full row afterwards via getUserById which has the correct JOIN.
     const sql = `
       INSERT INTO public.users (
         role_id, first_name, last_name, email, phone, password_hash, profile_picture_url, status
@@ -66,17 +64,14 @@ export const createUser = async ({
     const newId = result.rows[0].id;
     return getUserById(newId);
   } catch (err) {
-    // 23505 = unique_violation (e.g. duplicate email)
     if (err.code === "23505") {
       logger.warn({ email }, "Intento de registro con email duplicado");
       throw new AppError("El correo electrónico ya está registrado", 409);
     }
-    // 23503 = foreign_key_violation (e.g. role_id does not exist)
     if (err.code === "23503") {
       logger.warn({ role_id }, "FK violation al crear usuario");
       throw new AppError("El role especificado no existe", 400);
     }
-    // Re-throw AppErrors that we raised ourselves
     if (err instanceof AppError) throw err;
     logger.error({ err, role_id, email }, "Error inesperado en createUser");
     throw new Error("Error al registrar al usuario en la base de datos");

@@ -3,6 +3,7 @@ import { logger } from "./utils/logger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import roleRoutes from "./modules/roles/routes/roleRoutes.js";
 import userRoutes from "./modules/users/userRoutes.js";
+import categoryRoutes from "./modules/categories/categoryRoutes.js";
 import { setupSwagger } from "./config/swagger.js";
 import { env } from "./config/environment.js";
 
@@ -24,7 +25,8 @@ app.get("/", (req, res) => {
 app.use("/api/v1/roles", roleRoutes);
 // Módulo de Usuarios
 app.use("/api/v1/users", userRoutes);
-
+//Módulo de categorias
+app.use("/api/v1/categories", categoryRoutes);
 app.use(errorHandler);
 
 export default app;

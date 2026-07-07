@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { query } from "../../config/db";
+import { query } from "../../config/db.js";
 const statusValues = ["activo", "inactivo"];
 
 export const createCategorySchema = z.object({

@@ -125,10 +125,7 @@ export const updateUserSchema = z.object({
     })
     .refine(
       (data) => {
-        // Ignore profile_picture_url if it was transformed to null from undefined
-        const keys = Object.keys(data).filter(
-          (k) => data[k] !== undefined,
-        );
+        const keys = Object.keys(data).filter((k) => data[k] !== undefined);
         return keys.length > 0;
       },
       { message: "Debe proporcionar al menos un campo para actualizar" },
@@ -141,7 +138,6 @@ export const updateUserSchema = z.object({
 
 export const changeStatusSchema = z.object({
   body: z.object({
-    // Second arg to z.enum() must be an options object, not a plain string
     status: z.enum(statusValues, {
       errorMap: () => ({
         message: "El estado debe ser: active, inactive o suspended",
