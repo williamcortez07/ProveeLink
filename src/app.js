@@ -4,6 +4,7 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import roleRoutes from "./modules/roles/routes/roleRoutes.js";
 import userRoutes from "./modules/users/userRoutes.js";
 import categoryRoutes from "./modules/categories/categoryRoutes.js";
+import companyRoutes from "./modules/companies/companyRoutes.js";
 import { setupSwagger } from "./config/swagger.js";
 import { env } from "./config/environment.js";
 
@@ -27,6 +28,8 @@ app.use("/api/v1/roles", roleRoutes);
 app.use("/api/v1/users", userRoutes);
 //Módulo de categorias
 app.use("/api/v1/categories", categoryRoutes);
+//Módulo de empresas
+app.use("/api/v1/companies", companyRoutes);
 app.use(errorHandler);
 
 export default app;

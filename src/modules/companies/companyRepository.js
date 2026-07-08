@@ -1,8 +1,6 @@
-import { query, Query } from "../../config/db.js";
+import { query } from "../../config/db.js";
 import { logger } from "../../utils/logger.js";
 import { AppError } from "../../utils/AppError.js";
-import { destination } from "pino";
-import { email, object } from "zod/v4";
 
 const companyColumns = [
   "c.id",
@@ -18,8 +16,8 @@ const companyColumns = [
   "c.logo_url",
   "c.website_url",
   "c.verification_status",
-  "u.created_at",
-  "u.updated_at",
+  "c.created_at",
+  "c.updated_at",
 ].join(", ");
 
 const mapCompanyRow = (row) => ({
@@ -52,13 +50,12 @@ export const createCompany = async ({
   city,
   logo_url = null,
   website_url = null,
-  verification_status,
 }) => {
   try {
     const sql = `
         INSERT INTO public.companies(
-            user_id, name,description, tax_id, phone,email,address,state_province,city,logo_url,website_url,verification_status
-        )VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+            user_id, name, description, tax_id, phone, email, address, state_province, city, logo_url, website_url
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING id;
         `;
     const result = await query(sql, [
@@ -73,7 +70,6 @@ export const createCompany = async ({
       city,
       logo_url,
       website_url,
-      verification_status,
     ]);
     const newId = result.rows[0].id;
     return getCompanyById(newId);
@@ -84,7 +80,7 @@ export const createCompany = async ({
     }
     if (err.code === "23503") {
       logger.warn({ user_id }, "FK violation al crear empresas");
-      throw new Error("El usuario especificado no existe", 400);
+      throw new AppError("El usuario especificado no existe", 400);
     }
     if (err instanceof AppError) throw err;
     logger.error(
@@ -92,7 +88,7 @@ export const createCompany = async ({
       "Error inesperado al registrar la empresa",
     );
     throw new Error(
-      "Error al registrar la empresa/compañia en la base de datos",
+      "Error al registrar la empresa/compañía en la base de datos",
     );
   }
 };
@@ -109,20 +105,20 @@ export const getCompany = async ({
     const conditions = [];
     if (filters.status) {
       params.push(filters.status);
-      conditions.push(`c.status = $${params.length}`);
+      conditions.push(`c.verification_status = $${params.length}`);
     }
     if (filters.user_id) {
       params.push(filters.user_id);
-      conditions.push(`c.user_id =$${params.length}`);
+      conditions.push(`c.user_id = $${params.length}`);
     }
     let sql = `
     SELECT ${companyColumns}, COUNT(*) OVER() AS total_count
-    FROM public.companies
+    FROM public.companies c
     `;
     if (conditions.length > 0) {
       sql += `WHERE ${conditions.join(" AND ")}\n`;
     }
-    sql += `ORDER BY c.${sortBy}${sortOrder.toUpperCase()}\nLIMIT $${params.length + 1} OFFSET $${params.length + 2};`;
+    sql += `ORDER BY c.${sortBy} ${sortOrder.toUpperCase()}\nLIMIT $${params.length + 1} OFFSET $${params.length + 2};`;
     params.push(limit, offset);
     const result = await query(sql, params);
     const total =
@@ -149,16 +145,16 @@ export const searchCompanies = async ({
     const searchPattern = `%${searchQuery}%`;
     const sql = `
 SELECT ${companyColumns}, COUNT(*) OVER() AS total_count
-FROM public.companies
-WHERE name ILIKE $1
- OR description ILIKE $1
- OR CONCAT(name, ' ', description) ILIKE $1
-ORDER BY created_at DESC
+FROM public.companies c
+WHERE c.name ILIKE $1
+ OR c.description ILIKE $1
+ OR CONCAT(c.name, ' ', c.description) ILIKE $1
+ORDER BY c.created_at DESC
 LIMIT $2 OFFSET $3;
 `;
-    const result = await query(sql, [searchCompanies, limit, offset]);
+    const result = await query(sql, [searchPattern, limit, offset]);
     const total =
-      result.rows.length > 0 ? Number(result.rowa[0].total_count) : 0;
+      result.rows.length > 0 ? Number(result.rows[0].total_count) : 0;
     const data = result.rows.map(({ total_count, ...row }) =>
       mapCompanyRow(row),
     );
@@ -176,8 +172,8 @@ export const getCompanyById = async (id) => {
   try {
     const sql = `
 SELECT ${companyColumns}
-FROM public.companies
-WHERE id = $1;
+FROM public.companies c
+WHERE c.id = $1;
 `;
     const result = await query(sql, [id]);
     return result.rows[0] ? mapCompanyRow(result.rows[0]) : null;
@@ -193,12 +189,13 @@ export const getCompanyByEmail = async (email) => {
     FROM public.companies
     WHERE email = $1;`;
     const result = await query(sql, [email]);
-    return result.row[0] || null;
+    return result.rows[0] || null;
   } catch (err) {
     logger.error({ err, email }, "Error en getCompanyByEmail");
-    throw new Error("Error el consultar la empresa por su email");
+    throw new Error("Error al consultar la empresa por su email");
   }
 };
+
 export const updateCompany = async (id, updateData) => {
   try {
     const fields = [];
@@ -206,7 +203,7 @@ export const updateCompany = async (id, updateData) => {
     let index = 1;
     Object.entries(updateData).forEach(([key, value]) => {
       if (value !== undefined) {
-        fields.push(`${key}=$${index}`);
+        fields.push(`${key} = $${index}`);
         values.push(value);
         index += 1;
       }
@@ -216,7 +213,7 @@ export const updateCompany = async (id, updateData) => {
     }
     values.push(id);
     const sql = `
-    UPDATE publiccompanies
+    UPDATE public.companies
     SET ${fields.join(", ")}, updated_at = NOW()
     WHERE id = $${index}
     RETURNING id;
