@@ -68,7 +68,7 @@ export const searchUsersSchema = z.object({
     query: z
       .string()
       .trim()
-      .min(1, "El término de búsqueda debe tener al menos 1 carácter"),
+      .min(1, "El término de búsqueda debe tener al menos 1 caracter"),
     page: z.coerce.number().int().min(1).catch(1),
     pageSize: z.coerce.number().int().min(1).max(100).catch(10),
   }),

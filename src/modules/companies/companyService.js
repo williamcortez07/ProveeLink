@@ -98,7 +98,6 @@ export const updateCompanyService = async (id, updateData) => {
     throw new AppError("Empresa no encontrada", 404);
   }
 
-  // Whitelist explícito: solo campos de negocio editables
   const ALLOWED_UPDATE_FIELDS = [
     "name",
     "description",
@@ -114,12 +113,16 @@ export const updateCompanyService = async (id, updateData) => {
 
   const sanitizedData = Object.fromEntries(
     Object.entries(updateData).filter(
-      ([key, value]) => ALLOWED_UPDATE_FIELDS.includes(key) && value !== undefined,
+      ([key, value]) =>
+        ALLOWED_UPDATE_FIELDS.includes(key) && value !== undefined,
     ),
   );
 
   if (Object.keys(sanitizedData).length === 0) {
-    throw new AppError("Debe proporcionar al menos un campo válido para actualizar", 400);
+    throw new AppError(
+      "Debe proporcionar al menos un campo válido para actualizar",
+      400,
+    );
   }
 
   if (sanitizedData.email && sanitizedData.email !== company.email) {
@@ -131,6 +134,9 @@ export const updateCompanyService = async (id, updateData) => {
     }
   }
 
-  const updatedCompany = await companyRepository.updateCompany(id, sanitizedData);
+  const updatedCompany = await companyRepository.updateCompany(
+    id,
+    sanitizedData,
+  );
   return updatedCompany;
 };
