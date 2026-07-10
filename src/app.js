@@ -6,6 +6,7 @@ import userRoutes from "./modules/users/userRoutes.js";
 import categoryRoutes from "./modules/categories/categoryRoutes.js";
 import companyRoutes from "./modules/companies/companyRoutes.js";
 import supplierRoutes from "./modules/suppliers/supplierRoutes.js";
+import productRoutes from "./modules/products/productRoutes.js";
 import { setupSwagger } from "./config/swagger.js";
 import { env } from "./config/environment.js";
 
@@ -33,6 +34,8 @@ app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/companies", companyRoutes);
 //Módulo de proveedores
 app.use("/api/v1/suppliers", supplierRoutes);
+//Módulo de productos
+app.use("/api/v1/products", productRoutes);
 app.use(errorHandler);
 
 export default app;
