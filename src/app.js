@@ -1,6 +1,7 @@
 import express from "express";
 import { logger } from "./utils/logger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 import roleRoutes from "./modules/roles/routes/roleRoutes.js";
 import userRoutes from "./modules/users/userRoutes.js";
 import categoryRoutes from "./modules/categories/categoryRoutes.js";
@@ -24,18 +25,23 @@ app.get("/", (req, res) => {
   });
 });
 
+// ── Módulo de Autenticación (público — no requiere token) ──
+app.use("/api/v1/auth", authRoutes);
+
+// ── Módulos protegidos (autenticación aplicada por ruta individual) ──
 // Módulo de Roles
 app.use("/api/v1/roles", roleRoutes);
 // Módulo de Usuarios
 app.use("/api/v1/users", userRoutes);
-//Módulo de categorias
+// Módulo de Categorías
 app.use("/api/v1/categories", categoryRoutes);
-//Módulo de empresas
+// Módulo de Empresas
 app.use("/api/v1/companies", companyRoutes);
-//Módulo de proveedores
+// Módulo de Proveedores
 app.use("/api/v1/suppliers", supplierRoutes);
-//Módulo de productos
+// Módulo de Productos
 app.use("/api/v1/products", productRoutes);
+
 app.use(errorHandler);
 
 export default app;

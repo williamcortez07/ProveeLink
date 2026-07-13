@@ -7,8 +7,12 @@ import {
   getCategoryQuerySchema,
 } from "../categories/category.Schema.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
+import { authenticate } from "../../middlewares/auth.middlewares.js";
 
 const router = Router();
+
+// Todos los endpoints de categorías requieren autenticación
+router.use(authenticate);
 
 /**
  * @openapi

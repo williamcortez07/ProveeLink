@@ -1,10 +1,9 @@
 import * as supplierRepository from "../suppliers/supplierRepository.js";
 import * as companyrepository from "../companies/companyRepository.js";
-import { AppError } from "../../utils/AppError";
-import { query } from "../../config/db.js";
+import { AppError } from "../../utils/AppError.js";
 
-const DEFAULT_STATUS = "activo";
-const ALLOWED_SORT_FIELDS = new set([
+const DEFAULT_STATUS = "active";
+const ALLOWED_SORT_FIELDS = new Set([
   "supplier_type",
   "service_description",
   "geographic_coverage",
@@ -103,24 +102,28 @@ export const updateSupplierService = async (id, updateData) => {
     }
   }
 
-  const updateSupplier = await supplierRepository.updateSupplier(id);
+  const updateSupplier = await supplierRepository.updateSupplier(id, updateData);
   return updateSupplier;
 };
 
 export const changeSupplierStatus = async (id, status) => {
-  const supplier = await supplierRepository.getCompanyById(id);
+  const supplier = await supplierRepository.getSupplierById(id);
   if (!supplier) {
     throw new AppError("Proveedor no encontrado", 404);
   }
   const currentStatus = supplier.status;
-  const allowedTrasitions = {
-    activo: ["inactivo", "suspendido"],
-    inactivo: ["activo"],
-    suspendido: ["activo"],
+  const allowedTransitions = {
+    active: ["inactive", "suspended"],
+    inactive: ["active"],
+    suspended: ["active"],
   };
-  if (!allowedTrasitions[currentStatus]?.includes(status)) {
-    throw new AppError("Transición de estado no permitida", 400);
+  if (!allowedTransitions[currentStatus]?.includes(status)) {
+    throw new AppError(
+      `Transición de estado no permitida: ${currentStatus} → ${status}`,
+      400,
+    );
   }
-  const updatedSupplier = await supplierRepository.updateSupplier(id, status);
+  // Bug corregido: updateSupplier(id, status) → updateSupplierStatus(id, status)
+  const updatedSupplier = await supplierRepository.updateSupplierStatus(id, status);
   return updatedSupplier;
 };

@@ -1,6 +1,5 @@
 import * as supplierService from "../suppliers/supplierService.js";
-import { asyncWrapper } from "../../utils/asyncWrapper";
-import { success } from "zod/v4";
+import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const createSupplier = asyncWrapper(async (req, res) => {
   const newSupplier = await supplierService.createSupplierService(req.body);

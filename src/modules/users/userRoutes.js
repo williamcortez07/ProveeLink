@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as userController from "../users/userController.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
+import { authenticate } from "../../middlewares/auth.middlewares.js";
 import {
   createUserSchema,
   getUsersSchema,
@@ -205,6 +206,7 @@ const router = Router();
  *     description: Registra un usuario en la base de datos vinculándolo a un rol.
  *     tags:
  *       - Usuarios
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -311,8 +313,10 @@ const router = Router();
  *       500:
  *         description: Error interno del servidor.
  */
+// POST / es público (registro de usuarios)
 router.post("/", validateRequest(createUserSchema), userController.createUser);
-router.get("/", validateRequest(getUsersSchema), userController.getUsers);
+// El resto de endpoints requieren autenticación
+router.get("/", authenticate, validateRequest(getUsersSchema), userController.getUsers);
 
 /**
  * @openapi
@@ -369,6 +373,7 @@ router.get("/", validateRequest(getUsersSchema), userController.getUsers);
  */
 router.get(
   "/search",
+  authenticate,
   validateRequest(searchUsersSchema),
   userController.searchUsers,
 );
@@ -479,16 +484,19 @@ router.get(
  */
 router.get(
   "/:id",
+  authenticate,
   validateRequest(userIdParamSchema),
   userController.getUserById,
 );
 router.put(
   "/:id",
+  authenticate,
   validateRequest(updateUserSchema),
   userController.updateUser,
 );
 router.patch(
   "/:id",
+  authenticate,
   validateRequest(updateUserSchema),
   userController.updateUser,
 );
@@ -540,6 +548,7 @@ router.patch(
  */
 router.patch(
   "/:id/status",
+  authenticate,
   validateRequest(changeStatusSchema),
   userController.changeUserStatus,
 );

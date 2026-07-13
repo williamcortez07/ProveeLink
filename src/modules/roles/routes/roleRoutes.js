@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as roleController from '../controllers/roleController.js';
 import { validateRequest } from '../../../middlewares/validateRequest.js';
+import { authenticate } from '../../../middlewares/auth.middlewares.js';
 import {
   createRoleSchema,
   updateRoleSchema,
@@ -9,6 +10,9 @@ import {
 } from '../schemas/roleSchema.js';
 
 const router = Router();
+
+// Todos los endpoints de roles requieren autenticación
+router.use(authenticate);
 
 /**
  * @openapi

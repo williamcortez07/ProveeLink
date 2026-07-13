@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as companyController from "../companies/companyController.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
+import { authenticate } from "../../middlewares/auth.middlewares.js";
 import {
   createCompanySchema,
   getCompaniesSchema,
@@ -10,6 +11,9 @@ import {
 } from "../companies/companySchema.js";
 
 const router = Router();
+
+// Todos los endpoints de empresas requieren autenticación
+router.use(authenticate);
 
 /**
  * @openapi

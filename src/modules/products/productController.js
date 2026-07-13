@@ -1,6 +1,5 @@
 import * as productService from "../products/productService.js";
-import { asyncWrapper } from "../../utils/asyncWrapper";
-import { success } from "zod/v4";
+import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const createProduct = asyncWrapper(async (req, res) => {
   const newProduct = await productService.createProductService(req.body);
@@ -53,7 +52,7 @@ export const updateProduct = asyncWrapper(async (req, res) => {
 });
 
 export const changeProductStatus = asyncWrapper(async (req, res) => {
-  const updateduser = await productService.changeProductStatusService(
+  const updatedProduct = await productService.changeProductStatusService(
     req.params.id,
     req.body.status,
   );

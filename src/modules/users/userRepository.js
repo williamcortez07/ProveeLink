@@ -188,6 +188,61 @@ export const getUserByEmail = async (email) => {
   }
 };
 
+/**
+ * Obtiene los datos de autenticación de un usuario por email.
+ * Incluye password_hash y role_name, necesarios para el login.
+ * No usar este método en respuestas de la API.
+ */
+export const getUserForAuth = async (email) => {
+  try {
+    const sql = `
+      SELECT u.id, u.email, u.password_hash, u.status, u.role_id, r.name AS role_name
+      FROM public.users u
+      JOIN public.roles r ON r.id = u.role_id
+      WHERE u.email = $1;
+    `;
+    const result = await query(sql, [email]);
+    return result.rows[0] || null;
+  } catch (err) {
+    logger.error({ err, email }, "Error en getUserForAuth");
+    throw new Error("Error al consultar credenciales del usuario");
+  }
+};
+
+/**
+ * Actualiza la fecha de último login del usuario.
+ */
+export const updateLastLogin = async (id) => {
+  try {
+    await query(
+      `UPDATE public.users SET last_login_at = NOW() WHERE id = $1;`,
+      [id],
+    );
+  } catch (err) {
+    logger.warn({ err, id }, "No se pudo actualizar last_login_at");
+    // No propagamos el error — es una operación no crítica
+  }
+};
+
+/**
+ * Obtiene los datos de autenticación por ID de usuario (para refresh token).
+ */
+export const getUserForAuthById = async (id) => {
+  try {
+    const sql = `
+      SELECT u.id, u.email, u.password_hash, u.status, u.role_id, r.name AS role_name
+      FROM public.users u
+      JOIN public.roles r ON r.id = u.role_id
+      WHERE u.id = $1;
+    `;
+    const result = await query(sql, [id]);
+    return result.rows[0] || null;
+  } catch (err) {
+    logger.error({ err, id }, "Error en getUserForAuthById");
+    throw new Error("Error al consultar credenciales del usuario");
+  }
+};
+
 export const updateUser = async (id, updateData) => {
   try {
     const fields = [];

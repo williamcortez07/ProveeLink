@@ -2,9 +2,9 @@ import * as productRepository from "../products/productRepository.js";
 import * as supplierRepository from "../suppliers/supplierRepository.js";
 import * as categoryRepository from "../categories/categoryRepository.js";
 import { AppError } from "../../utils/AppError.js";
-import { query } from "../../config/db";
 
-const ALLOWEB_SORT_FIELDS = new set([
+const DEFAULT_STATUS = "activo";
+const ALLOWEB_SORT_FIELDS = new Set([
   "name",
   "description",
   "price",
@@ -54,7 +54,7 @@ export const createProductService = async (productData) => {
     ...rest,
     supplier_id,
     category_id,
-    status,
+    status: DEFAULT_STATUS,
   });
   return createdProduct;
 };
@@ -74,7 +74,7 @@ export const getProductService = async ({
 
   const { data, total } = await productRepository.getProducts({
     limit: pageSize,
-    offset,
+    offset: offSet,
     filters: { status, supplier_id, category_id },
     sortBy: safeSortBy,
     sortOrder: safeSortOrder,
@@ -153,7 +153,7 @@ export const updateProductService = async (id, updateData) => {
     }
   }
 
-  const updatedProduct = await productRepository.updateProduct(id);
+  const updatedProduct = await productRepository.updateProduct(id, updateData);
   return updatedProduct;
 };
 

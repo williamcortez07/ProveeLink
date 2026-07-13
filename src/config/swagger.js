@@ -27,6 +27,8 @@ const options = {
         description: "Servidor de Desarrollo Local",
       },
     ],
+    // Seguridad global: todos los endpoints protegidos requieren Bearer JWT
+    security: [{ bearerAuth: [] }],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -49,12 +51,23 @@ const options = {
               example: "Mensaje explicativo del error",
             },
             errors: {
-              type: "array",
-              items: {
-                type: "object",
-              },
+              type: "object",
               description: "Detalles de errores de validación (opcional)",
             },
+          },
+        },
+        UnauthorizedError: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: false },
+            message: { type: "string", example: "Acceso denegado. Se requiere un token de autenticación." },
+          },
+        },
+        ForbiddenError: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: false },
+            message: { type: "string", example: "No tienes permisos suficientes para realizar esta acción." },
           },
         },
       },

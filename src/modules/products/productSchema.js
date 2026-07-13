@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { query } from "../../config/db";
 const uuidSchema = z.string().uuid("El ID proporcionado no es un UUID válido");
 const statusValues = ["activo", "agotado", "no disponible", "disponible"];
 export const createProductSchema = z.object({
@@ -10,7 +9,7 @@ export const createProductSchema = z.object({
       .string()
       .trim()
       .min(2, "El nombre debe tener al menos 2 caracteres")
-      .max(15, "El nombre no debe exceder los 150 caracteres"),
+      .max(150, "El nombre no debe exceder los 150 caracteres"),
     description: z
       .string()
       .trim()

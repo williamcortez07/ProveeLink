@@ -19,6 +19,7 @@ const supplierColumns = [
 const mapSupplierRow = (row) => ({
   id: row.id,
   company_id: row.company_id,
+  company_name: row.company_name,
   supplier_type: row.supplier_type,
   service_description: row.service_description,
   geographic_coverage: row.geographic_coverage,
@@ -36,14 +37,14 @@ export const createSupplier = async ({
   geographic_coverage,
   operating_hours,
   status,
-  average_rating,
 }) => {
   try {
     const sql = `
-    INSERT INTO public.suppliers(
-        company_id, supplier_type, service_description, geographic_coverage,operating_hours,status
-    ) VALUES($1, $2,$3, $4,$5,$6)
-    RETURNING id;
+      INSERT INTO public.suppliers (
+        company_id, supplier_type, service_description,
+        geographic_coverage, operating_hours, status
+      ) VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id;
     `;
     const result = await query(sql, [
       company_id,
@@ -52,15 +53,14 @@ export const createSupplier = async ({
       geographic_coverage,
       operating_hours,
       status,
-      average_rating,
     ]);
-    const newId = result.rowCount[0].id;
+    const newId = result.rows[0].id;
     return getSupplierById(newId);
   } catch (err) {
     if (err.code === "23503") {
       logger.warn({ company_id }, "FK violation al registrar al proveedor");
       throw new AppError(
-        "La empresa especificada se encuentra registrada ",
+        "La empresa especificada no existe en el sistema",
         400,
       );
     }
@@ -83,21 +83,24 @@ export const getSuppliers = async ({
 
     if (filters.status) {
       params.push(filters.status);
-      conditions.push(`c.status = $${params.length}`);
+      conditions.push(`s.status = $${params.length}`);
     }
     if (filters.company_id) {
       params.push(filters.company_id);
-      conditions.push(`c.company_id = $${params.length}`);
+      conditions.push(`s.company_id = $${params.length}`);
     }
+
     let sql = `
-    SELCT ${supplierColumns}, COUNT(*) OVER() AS total_count
-    FROM public.suppliers s
-    JOIN public.companies c ON c.id = s.company_id
+      SELECT ${supplierColumns}, COUNT(*) OVER() AS total_count
+      FROM public.suppliers s
+      JOIN public.companies c ON c.id = s.company_id
     `;
+
     if (conditions.length > 0) {
-      sql += `WHERE ${conditions.join(" AND")}\n`;
+      sql += `WHERE ${conditions.join(" AND ")}\n`;
     }
-    sql += `ORDER BY c.${sortBy}${sortOrder.toUpperCase()}\nLIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+
+    sql += `ORDER BY s.${sortBy} ${sortOrder.toUpperCase()}\nLIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const result = await query(sql, params);
@@ -124,15 +127,15 @@ export const searchSupplier = async ({
   try {
     const searchPattern = `%${searchQuery}%`;
     const sql = `
-SELECT ${supplierColumns}, COUNT(*) OVER() AS total_count
-FROM public.supplier s
-JOIN publi.companies c ON c.id = s.company_id
-WHERE s.supplier_type = ILIKE $1
-OR s.supplier_description = ILIKE $1
-OR CONCAT(s.supplier_type, ' ', s.supplier.description) ILIKE $1
-ORDER BY s.created_at DESC
-LIMIT $2 OFFSET $3;
-`;
+      SELECT ${supplierColumns}, COUNT(*) OVER() AS total_count
+      FROM public.suppliers s
+      JOIN public.companies c ON c.id = s.company_id
+      WHERE s.supplier_type ILIKE $1
+         OR s.service_description ILIKE $1
+         OR CONCAT(s.supplier_type, ' ', s.service_description) ILIKE $1
+      ORDER BY s.created_at DESC
+      LIMIT $2 OFFSET $3;
+    `;
 
     const result = await query(sql, [searchPattern, limit, offset]);
     const total =
@@ -147,69 +150,70 @@ LIMIT $2 OFFSET $3;
       { err, searchQuery, limit, offset },
       "Error en searchSuppliers",
     );
-    throw new AppError("Error al buscar proveedores en la base de datos");
+    throw new Error("Error al buscar proveedores en la base de datos");
   }
 };
 
 export const getSupplierById = async (id) => {
   try {
     const sql = `
-SELECT ${supplierColumns}
-FROM public.supplier s
-JOIN public.companies c ON c.id = s.company_id
-WHERE s.id = $1
-`;
+      SELECT ${supplierColumns}
+      FROM public.suppliers s
+      JOIN public.companies c ON c.id = s.company_id
+      WHERE s.id = $1;
+    `;
     const result = await query(sql, [id]);
     return result.rows[0] ? mapSupplierRow(result.rows[0]) : null;
   } catch (err) {
-    logger({ err, id }, "Error en getSupplierById");
-    throw new AppError("Error al consultar un proveedor por su id");
+    logger.error({ err, id }, "Error en getSupplierById");
+    throw new AppError("Error al consultar un proveedor por su id", 500);
   }
 };
-
 export const updateSupplier = async (id, updateData) => {
   try {
     const fields = [];
     const values = [];
     let index = 1;
+
     Object.entries(updateData).forEach(([key, value]) => {
       if (value !== undefined) {
         fields.push(`${key} = $${index}`);
-        value.push(value);
+        values.push(value);
         index += 1;
       }
     });
+
     if (fields.length === 0) {
       return getSupplierById(id);
     }
+
     values.push(id);
     const sql = `
-    UPDATE public.suppliers
-    SET ${fields.join(", ")}, updated_at = NOW()
-    WHERE id $${index}
-    RETURNING id;
+      UPDATE public.suppliers
+      SET ${fields.join(", ")}, updated_at = NOW()
+      WHERE id = $${index}
+      RETURNING id;
     `;
     await query(sql, values);
     return getSupplierById(id);
   } catch (err) {
-    logger({ err, id, updateData }, "Error en updateSupplier");
-    throw new AppError("Error al actualizar el proveedor");
+    logger.error({ err, id, updateData }, "Error en updateSupplier");
+    throw new AppError("Error al actualizar el proveedor", 500);
   }
 };
 
 export const updateSupplierStatus = async (id, status) => {
   try {
     const sql = `
-UPDATE public.suppliers
-SET status = $1, updated_at = NOW()
-WHERE id = $2
-RETURNING id;
-
-`;
+      UPDATE public.suppliers
+      SET status = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING id;
+    `;
     await query(sql, [status, id]);
     return getSupplierById(id);
   } catch (err) {
-    logger({ err, id, status }, "Error en updateSupplierStatus");
-    throw new AppError("Error al actualizar el estado del proveedor");
+    logger.error({ err, id, status }, "Error en updateSupplierStatus");
+    throw new AppError("Error al actualizar el estado del proveedor", 500);
   }
 };
