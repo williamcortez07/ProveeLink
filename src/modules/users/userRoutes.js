@@ -9,6 +9,7 @@ import {
   userIdParamSchema,
   updateUserSchema,
   changeStatusSchema,
+  updateProfileSchema,
 } from "../users/userSchema.js";
 
 const router = Router();
@@ -376,6 +377,14 @@ router.get(
   authenticate,
   validateRequest(searchUsersSchema),
   userController.searchUsers,
+);
+
+// ── Ruta de perfil propio — debe ir ANTES de /:id para no colisionar ──
+router.put(
+  "/profile",
+  authenticate,
+  validateRequest(updateProfileSchema),
+  userController.updateProfile,
 );
 
 /**

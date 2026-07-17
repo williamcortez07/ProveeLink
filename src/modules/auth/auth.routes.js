@@ -2,7 +2,13 @@ import { Router } from "express";
 import * as authController from "./auth.controller.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
 import { authenticate } from "../../middlewares/auth.middlewares.js";
-import { loginSchema, refreshSchema } from "./auth.schema.js";
+import {
+  loginSchema,
+  refreshSchema,
+  registerSchema,
+  verifyEmailSchema,
+  resendOtpSchema,
+} from "./auth.schema.js";
 
 const router = Router();
 
@@ -202,7 +208,11 @@ router.post("/login", validateRequest(loginSchema), authController.login);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/refresh", validateRequest(refreshSchema), authController.refreshToken);
+router.post(
+  "/refresh",
+  validateRequest(refreshSchema),
+  authController.refreshToken,
+);
 
 /**
  * @openapi
@@ -267,5 +277,231 @@ router.post("/logout", authenticate, authController.logout);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/me", authenticate, authController.getMe);
+
+// ─────────────────────────────────────────────────────────────────
+// NUEVAS RUTAS: registro con OTP, verificación y reenvío
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * @openapi
+ * /api/v1/auth/register:
+ *   post:
+ *     summary: Registrar nuevo usuario
+ *     description: >-
+ *       Crea un usuario con status 'pending', genera un OTP de 6 dígitos,
+ *       lo almacena hasheado en verify_email y envía el código al correo del usuario.
+ *       El usuario debe verificar el OTP con POST /api/v1/auth/verify para activar su cuenta.
+ *     tags:
+ *       - Autenticación
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - role_id
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "nuevo@usuario.com"
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: "Mín. 8 caracteres, una mayúscula y un número."
+ *                 example: "Segura123"
+ *               role_id:
+ *                 type: string
+ *                 format: uuid
+ *                 example: "d3b07384-d113-4956-a5b6-76472251cf78"
+ *     responses:
+ *       201:
+ *         description: Usuario registrado. Se ha enviado el código OTP al correo.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Registro exitoso. Revisa tu correo para verificar tu cuenta."
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                       format: uuid
+ *                     email:
+ *                       type: string
+ *       400:
+ *         description: Error de validación.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: El correo electrónico ya está registrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post(
+  "/register",
+  validateRequest(registerSchema),
+  authController.register,
+);
+
+/**
+ * @openapi
+ * /api/v1/auth/verify:
+ *   post:
+ *     summary: Verificar OTP y activar cuenta
+ *     description: >-
+ *       Valida el código OTP enviado al correo del usuario.
+ *       Si es correcto y no ha expirado, activa la cuenta (status = 'active')
+ *       y devuelve tokens de acceso para auto-login inmediato.
+ *     tags:
+ *       - Autenticación
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "nuevo@usuario.com"
+ *               code:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *                 description: "Código OTP de 6 dígitos recibido por correo."
+ *                 example: "482931"
+ *     responses:
+ *       200:
+ *         description: Cuenta verificada y activada. Devuelve tokens para auto-login.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Correo verificado exitosamente. ¡Bienvenido a ProveeLink!"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                     refreshToken:
+ *                       type: string
+ *                     expiresIn:
+ *                       type: string
+ *                       example: "24h"
+ *       400:
+ *         description: OTP incorrecto, expirado o no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post(
+  "/verify",
+  validateRequest(verifyEmailSchema),
+  authController.verifyEmail,
+);
+
+/**
+ * @openapi
+ * /api/v1/auth/resend-otp:
+ *   post:
+ *     summary: Reenviar código OTP
+ *     description: >-
+ *       Genera un nuevo OTP de 6 dígitos para una cuenta en estado 'pending',
+ *       actualiza el registro en verify_email (reseteando expiración e intentos fallidos)
+ *       y envía el nuevo código al correo del usuario.
+ *     tags:
+ *       - Autenticación
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "nuevo@usuario.com"
+ *     responses:
+ *       200:
+ *         description: Nuevo OTP enviado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Se ha enviado un nuevo código de verificación a tu correo."
+ *       400:
+ *         description: La cuenta ya está activa o no requiere verificación.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: No existe una cuenta registrada con ese correo.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post(
+  "/resend-otp",
+  validateRequest(resendOtpSchema),
+  authController.resendOtp,
+);
 
 export default router;

@@ -3,8 +3,6 @@ import { AppError } from "../../../utils/AppError.js";
 
 export const createRoleService = async (roleData) => {
   const { name, description } = roleData;
-
-  // Validar si el rol ya existe
   const existingRole = await roleRepository.getRoleByName(name);
   if (existingRole) {
     throw new AppError(`El rol con el nombre '${name}' ya existe`, 409);
@@ -38,13 +36,11 @@ export const getRoleByIdService = async (id) => {
 };
 
 export const updateRoleService = async (id, updateData) => {
-  // Verificar si el rol existe
   const existingRole = await roleRepository.getRoleById(id);
   if (!existingRole) {
     throw new AppError("Rol no encontrado", 404);
   }
 
-  // Si se está intentando cambiar el nombre, validar que no colisione
   if (updateData.name && updateData.name !== existingRole.name) {
     const roleWithSameName = await roleRepository.getRoleByName(
       updateData.name,

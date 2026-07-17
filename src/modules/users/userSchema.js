@@ -149,3 +149,27 @@ export const changeStatusSchema = z.object({
     id: uuidSchema,
   }),
 });
+
+// ── Nuevo schema para PUT /users/profile ───────────────────────
+
+export const updateProfileSchema = z.object({
+  body: z.object({
+    first_name: z
+      .string()
+      .trim()
+      .min(2, "El nombre debe tener al menos 2 caracteres")
+      .max(100, "El nombre no debe exceder los 100 caracteres"),
+    last_name: z
+      .string()
+      .trim()
+      .min(2, "El apellido debe tener al menos 2 caracteres")
+      .max(100, "El apellido no debe exceder los 100 caracteres"),
+    phone: z
+      .string()
+      .trim()
+      .regex(phoneRegex, "El teléfono no tiene un formato válido")
+      .optional(),
+  }),
+  query: z.any(),
+  params: z.any(),
+});

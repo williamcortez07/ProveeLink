@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import * as userRepository from "../users/userRepository.js";
 import * as roleRepository from "../roles/repositories/roleRepository.js";
 import { AppError } from "../../utils/AppError.js";
+import { updateUserProfile } from "../auth/auth.repository.js";
 
 const DEFAULT_STATUS = "active";
 const SALT_ROUNDS = 12;
@@ -149,4 +150,23 @@ export const changeUserStatusService = async (id, status) => {
 
   const updatedUser = await userRepository.updateUserStatus(id, status);
   return updatedUser;
+};
+
+// ── Nuevo servicio: actualizar perfil propio ──────────────────────
+
+/**
+ * Servicio para que el usuario autenticado actualice su propio perfil.
+ * Solo permite modificar first_name, last_name y phone.
+ *
+ * @param {string} userId  ID extraído del JWT
+ * @param {{ first_name: string, last_name: string, phone?: string }} data
+ */
+export const updateProfileService = async (userId, data) => {
+  const user = await userRepository.getUserById(userId);
+  if (!user) {
+    throw new AppError("Usuario no encontrado", 404);
+  }
+
+  const updated = await updateUserProfile(userId, data);
+  return updated;
 };

@@ -20,6 +20,18 @@ const envSchema = z.object({
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   JWT_EXPIRES_IN: z.string().default('24h'),
+
+  // ── SMTP (Nodemailer) ──────────────────────────────────────────
+  MAIL_HOST: z.string().min(1, 'MAIL_HOST es requerido'),
+  MAIL_PORT: z.string().default('465').transform(Number),
+  MAIL_SECURE: z.string().default('true').transform((v) => v === 'true'),
+  MAIL_USER: z.string().min(1, 'MAIL_USER es requerido'),
+  MAIL_PASS: z.string().min(1, 'MAIL_PASS es requerido'),
+  MAIL_FROM: z.string().min(1, 'MAIL_FROM es requerido'),
+
+  // ── CORS ───────────────────────────────────────────────────────
+  // Orígenes separados por coma, o '*' para permitir todos.
+  CORS_ORIGIN: z.string().default('*'),
 });
 
 const _env = envSchema.safeParse(process.env);

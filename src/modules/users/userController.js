@@ -62,3 +62,22 @@ export const changeUserStatus = asyncWrapper(async (req, res) => {
     data: updatedUser,
   });
 });
+
+// ── Nuevo controlador: PUT /api/v1/users/profile ─────────────────
+
+/**
+ * PUT /api/v1/users/profile
+ * Actualiza el perfil del usuario autenticado (first_name, last_name, phone).
+ * Requiere JWT — el user_id se extrae de req.user.id (inyectado por authenticate).
+ */
+export const updateProfile = asyncWrapper(async (req, res) => {
+  const updatedUser = await userService.updateProfileService(
+    req.user.id,
+    req.body,
+  );
+  res.status(200).json({
+    success: true,
+    message: "Perfil actualizado exitosamente",
+    data: updatedUser,
+  });
+});

@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { logger } from "./utils/logger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./modules/auth/auth.routes.js";
@@ -14,6 +15,21 @@ import { env } from "./config/environment.js";
 const app = express();
 
 setupSwagger(app);
+
+// ── CORS ─────────────────────────────────────────────────────────
+// Lee CORS_ORIGIN del .env. Soporta '*' o lista de dominios separados por coma.
+const rawOrigins = env.CORS_ORIGIN.trim();
+const corsOptions = {
+  origin:
+    rawOrigins === "*"
+      ? "*"
+      : rawOrigins.split(",").map((o) => o.trim()),
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  // credentials solo funciona cuando origin NO es '*'
+  credentials: rawOrigins !== "*",
+};
+app.use(cors(corsOptions));
 
 app.use(express.json());
 

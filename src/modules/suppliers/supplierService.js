@@ -123,7 +123,6 @@ export const changeSupplierStatus = async (id, status) => {
       400,
     );
   }
-  // Bug corregido: updateSupplier(id, status) → updateSupplierStatus(id, status)
   const updatedSupplier = await supplierRepository.updateSupplierStatus(id, status);
   return updatedSupplier;
 };
