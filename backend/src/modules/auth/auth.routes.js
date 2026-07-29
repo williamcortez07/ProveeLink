@@ -278,10 +278,6 @@ router.post("/logout", authenticate, authController.logout);
  */
 router.get("/me", authenticate, authController.getMe);
 
-// ─────────────────────────────────────────────────────────────────
-// NUEVAS RUTAS: registro con OTP, verificación y reenvío
-// ─────────────────────────────────────────────────────────────────
-
 /**
  * @openapi
  * /api/v1/auth/register:

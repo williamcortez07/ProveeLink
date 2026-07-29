@@ -1,7 +1,11 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { AppError } from "../../utils/AppError.js";
-import { signAccessToken, signRefreshToken, verifyToken } from "../../utils/jwt.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyToken,
+} from "../../utils/jwt.js";
 import { sendOtpEmail } from "../../utils/mailer.js";
 import {
   spRegisterUserInit,
@@ -18,34 +22,23 @@ import {
   updateLastLogin,
 } from "../users/userRepository.js";
 
-/**
- * Servicio de login.
- * Valida credenciales, actualiza last_login_at y devuelve tokens.
- */
 export const loginService = async ({ email, password }) => {
-  // 1. Buscar usuario con sus credenciales y rol
   const user = await getUserForAuth(email);
 
   if (!user) {
-    // Mismo mensaje para no revelar si el email existe o no
     throw new AppError("Credenciales inválidas", 401);
   }
-
-  // 2. Verificar estado de la cuenta
   if (user.status !== "active") {
     throw new AppError(
       "Tu cuenta no está activa. Contacta con el administrador.",
       403,
     );
   }
-
-  // 3. Comparar contraseña
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) {
     throw new AppError("Credenciales inválidas", 401);
   }
 
-  // 4. Generar tokens
   const tokenPayload = {
     id: user.id,
     email: user.email,
@@ -56,7 +49,6 @@ export const loginService = async ({ email, password }) => {
   const accessToken = signAccessToken(tokenPayload);
   const refreshToken = signRefreshToken({ id: user.id });
 
-  // 5. Actualizar last_login_at (no crítico, no bloquea la respuesta)
   await updateLastLogin(user.id);
 
   return {
@@ -72,10 +64,6 @@ export const loginService = async ({ email, password }) => {
   };
 };
 
-/**
- * Servicio de renovación de access token usando el refresh token.
- * El refresh token solo contiene { id } como payload.
- */
 export const refreshTokenService = async ({ refreshToken }) => {
   let decoded;
 
@@ -91,7 +79,6 @@ export const refreshTokenService = async ({ refreshToken }) => {
     throw new AppError("Refresh token inválido.", 401);
   }
 
-  // Obtener datos actualizados del usuario para el nuevo token
   const user = await getUserForAuthById(decoded.id);
 
   if (!user) {
@@ -111,23 +98,9 @@ export const refreshTokenService = async ({ refreshToken }) => {
 
   return { accessToken: newAccessToken, expiresIn: "24h" };
 };
-
-// ─────────────────────────────────────────────────────────────────
-// NUEVOS SERVICIOS: registro con OTP, verificación y reenvío
-// ─────────────────────────────────────────────────────────────────
-
-/**
- * Servicio de registro con OTP.
- * El rol se asigna automáticamente desde la BD buscando 'usuario corriente'.
- * 1. Resuelve el role_id del rol genérico.
- * 2. Hashea contraseña.
- * 3. Genera y hashea OTP de 6 dígitos.
- * 4. Llama al stored procedure que crea usuario (pending) + verify_email atómicamente.
- * 5. Envía el OTP en texto plano por correo.
- */
+// aqui se asigna el rol generico para usuario comun
 export const registerService = async ({ email, password }) => {
-  // 1. Resolver el rol genérico desde la BD
-  const role_id = await findRoleByName("usuario corriente");
+  const role_id = await findRoleByName("Cliente");
   if (!role_id) {
     throw new AppError(
       "Rol por defecto no encontrado. Contacta con el administrador.",
@@ -135,16 +108,10 @@ export const registerService = async ({ email, password }) => {
     );
   }
 
-  // 2. Hashear contraseña
   const password_hash = await bcrypt.hash(password, 10);
-
-  // 3. Generar OTP seguro de 6 dígitos (100000–999999 inclusive)
   const otpPlain = String(crypto.randomInt(100000, 1000000));
 
-  // 4. Hashear el OTP antes de persistirlo
   const otp_hash = await bcrypt.hash(otpPlain, 10);
-
-  // 5. Llamar al stored procedure (maneja unique_violation internamente)
   let userId;
   try {
     userId = await spRegisterUserInit({
@@ -155,7 +122,6 @@ export const registerService = async ({ email, password }) => {
       expires_minutes: 15,
     });
   } catch (err) {
-    // El SP lanza SQLSTATE 23505 cuando el email ya existe
     if (err.code === "23505") {
       throw new AppError("El correo electrónico ya está registrado", 409);
     }
@@ -165,7 +131,6 @@ export const registerService = async ({ email, password }) => {
     throw err;
   }
 
-  // 6. Enviar OTP en texto plano
   await sendOtpEmail(email, otpPlain);
 
   return {

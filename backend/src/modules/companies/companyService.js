@@ -1,4 +1,5 @@
 import * as companyRepository from "../companies/companyRepository.js";
+import * as userRepository from "../users/userRepository.js";
 import { AppError } from "../../utils/AppError.js";
 
 const ALLOWED_SORT_FIELDS = new Set([

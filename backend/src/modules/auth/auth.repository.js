@@ -27,13 +27,11 @@ export const spRegisterUserInit = async ({
     return result.rows[0].user_id;
   } catch (err) {
     logger.error({ err, email }, "Error en spRegisterUserInit");
-    throw err; // Re-lanzamos para que el service maneje los códigos PG
+    throw err;
   }
 };
 
 /**
- * Busca el registro activo en verify_email para ese email
- * (used = false y no expirado).
  *
  * @param {string} email
  * @returns {Promise<object|null>}
@@ -58,7 +56,6 @@ export const findActiveOtp = async (email) => {
 };
 
 /**
- * Incrementa failed_attempts en 1 para un registro verify_email.
  *
  * @param {string} otpId UUID del registro verify_email
  */
@@ -74,8 +71,6 @@ export const incrementFailedAttempts = async (otpId) => {
 };
 
 /**
- * Marca el OTP como usado y activa la cuenta del usuario.
- * Ejecutado como transacción explícita para garantizar atomicidad.
  *
  * @param {string} otpId   UUID del registro verify_email
  * @param {string} userId  UUID del usuario a activar
@@ -106,7 +101,6 @@ export const markOtpUsedAndActivateUser = async (otpId, userId) => {
 };
 
 /**
- * Busca un usuario por email y devuelve id, status y role_id.
  *
  * @param {string} email
  * @returns {Promise<{ id: string, status: string, role_id: string, role_name: string }|null>}
@@ -128,9 +122,6 @@ export const findUserByEmailForAuth = async (email) => {
 };
 
 /**
- * Actualiza el registro verify_email con un nuevo OTP hasheado,
- * reseteando expires_in y failed_attempts.
- * Si no existe un registro para ese email, lo inserta.
  *
  * @param {{ email: string, user_id: string, otp_hash: string, expires_minutes?: number }} params
  */
@@ -160,7 +151,6 @@ export const upsertOtpForResend = async ({
 };
 
 /**
- * Actualiza el perfil del usuario autenticado (first_name, last_name, phone).
  *
  * @param {string} userId UUID del usuario
  * @param {{ first_name: string, last_name: string, phone?: string }} data

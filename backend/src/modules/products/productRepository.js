@@ -1,10 +1,6 @@
 import { query } from "../../config/db.js";
 import { logger } from "../../utils/logger.js";
 import { AppError } from "../../utils/AppError.js";
-import { destination } from "pino";
-import { number } from "zod/v4";
-import { map } from "zod";
-import { application } from "express";
 const productColumns = [
   "p.id",
   "p.supplier_id",
@@ -215,7 +211,7 @@ export const updateProduct = async (id, updateData) => {
     const sql = `
     UPDATE public.products
     SET ${fields.join(", ")}, updated_at = NOW()
-    WHERE id $${index}
+    WHERE id = $${index}
     RETURNING id;
     `;
     await query(sql, values);
@@ -234,7 +230,7 @@ SET status = $1, updated_at = NOW()
 WHERE id = $2
 RETURNING id;
 `;
-    await query(sql, [status.id]);
+    await query(sql, [status, id]);
     return getProductById(id);
   } catch (err) {
     logger.error({ err, id, status }, "Error en updateProductStatus");

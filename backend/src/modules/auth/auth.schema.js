@@ -6,9 +6,7 @@ export const loginSchema = z.object({
       .string()
       .trim()
       .email("El correo electrónico no tiene un formato válido"),
-    password: z
-      .string()
-      .min(1, "La contraseña es requerida"),
+    password: z.string().min(1, "La contraseña es requerida"),
   }),
   query: z.any(),
   params: z.any(),
@@ -16,15 +14,11 @@ export const loginSchema = z.object({
 
 export const refreshSchema = z.object({
   body: z.object({
-    refreshToken: z
-      .string()
-      .min(1, "El refreshToken es requerido"),
+    refreshToken: z.string().min(1, "El refreshToken es requerido"),
   }),
   query: z.any(),
   params: z.any(),
 });
-
-// ── Nuevos schemas ─────────────────────────────────────────────
 
 export const registerSchema = z.object({
   body: z.object({
@@ -35,7 +29,10 @@ export const registerSchema = z.object({
     password: z
       .string()
       .min(8, "La contraseña debe tener al menos 8 caracteres")
-      .regex(/[A-Z]/, "La contraseña debe contener al menos una letra mayúscula")
+      .regex(
+        /[A-Z]/,
+        "La contraseña debe contener al menos una letra mayúscula",
+      )
       .regex(/[0-9]/, "La contraseña debe contener al menos un número"),
   }),
   query: z.any(),
