@@ -19,19 +19,26 @@ const ALLOWED_SORT_FIELDS = new Set([
 ]);
 
 export const createCompanyService = async (companyData) => {
-  const { email, user_id, ...rest } = companyData;
+  const { email, user_id, tax_id, ...rest } = companyData;
   const user = await userRepository.getUserById(user_id);
   if (!user) {
     throw new AppError("El usuario especificado no existe", 400);
   }
-  const existingCompany = await companyRepository.getCompanyByEmail(email);
-  if (existingCompany) {
-    throw new AppError("El correo electrónico ya está registrado", 409);
+  const existingCompanyByEmail = await companyRepository.getCompanyByEmail(email);
+  if (existingCompanyByEmail) {
+    throw new AppError("El correo electrónico ya está registrado por otra empresa", 409);
+  }
+  if (tax_id) {
+    const existingCompanyByTaxId = await companyRepository.getCompanyByTaxId(tax_id);
+    if (existingCompanyByTaxId) {
+      throw new AppError("El número de identificación fiscal ya está registrado por otra empresa", 409);
+    }
   }
   const createdCompany = await companyRepository.createCompany({
     ...rest,
     user_id,
     email,
+    ...(tax_id ? { tax_id } : {}),
   });
   return createdCompany;
 };

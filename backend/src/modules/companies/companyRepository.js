@@ -41,8 +41,8 @@ const mapCompanyRow = (row) => ({
 export const createCompany = async ({
   user_id,
   name,
-  description,
-  tax_id,
+  description = null,
+  tax_id = null,
   phone = null,
   email,
   address,
@@ -75,12 +75,27 @@ export const createCompany = async ({
     return getCompanyById(newId);
   } catch (err) {
     if (err.code === "23505") {
+      const detail = err.detail || "";
+      if (detail.includes("tax_id") || err.constraint?.includes("tax_id")) {
+        logger.warn({ tax_id }, "intento de registro con tax_id duplicado");
+        throw new AppError(
+          "El número de identificación fiscal (tax_id) ya está registrado por otra empresa",
+          409,
+        );
+      }
       logger.warn({ email }, "intento de registro con email duplicado");
       throw new AppError("El correo electrónico ya está registrado", 409);
     }
     if (err.code === "23503") {
       logger.warn({ user_id }, "FK violation al crear empresas");
       throw new AppError("El usuario especificado no existe", 400);
+    }
+    if (err.code === "23502") {
+      logger.warn({ err }, "violación de campo no nulo al crear empresa");
+      throw new AppError(
+        `El campo '${err.column || "requerido"}' es obligatorio`,
+        400,
+      );
     }
     if (err instanceof AppError) throw err;
     logger.error(
@@ -193,6 +208,20 @@ export const getCompanyByEmail = async (email) => {
   } catch (err) {
     logger.error({ err, email }, "Error en getCompanyByEmail");
     throw new Error("Error al consultar la empresa por su email");
+  }
+};
+
+export const getCompanyByTaxId = async (taxId) => {
+  try {
+    if (!taxId) return null;
+    const sql = `SELECT id, tax_id
+    FROM public.companies
+    WHERE tax_id = $1;`;
+    const result = await query(sql, [taxId]);
+    return result.rows[0] || null;
+  } catch (err) {
+    logger.error({ err, taxId }, "Error en getCompanyByTaxId");
+    throw new Error("Error al consultar la empresa por tax_id");
   }
 };
 

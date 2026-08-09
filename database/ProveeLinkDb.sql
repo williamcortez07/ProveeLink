@@ -45,7 +45,7 @@ CREATE TABLE companies (
     user_id UUID NOT NULL,
     name VARCHAR(150) NOT NULL,
     description TEXT,
-    tax_id VARCHAR(50) NOT NULL UNIQUE,
+    tax_id VARCHAR(50) UNIQUE,
     phone VARCHAR(20),
     email VARCHAR(150),
     address TEXT,
