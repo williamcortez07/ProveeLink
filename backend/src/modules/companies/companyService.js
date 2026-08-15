@@ -1,6 +1,9 @@
 import * as companyRepository from "../companies/companyRepository.js";
 import * as userRepository from "../users/userRepository.js";
+import { findRoleByName } from "../auth/auth.repository.js";
+import { signAccessToken, signRefreshToken } from "../../utils/jwt.js";
 import { AppError } from "../../utils/AppError.js";
+const { updateUserRole } = userRepository;
 
 const ALLOWED_SORT_FIELDS = new Set([
   "name",
@@ -28,12 +31,35 @@ export const createCompanyService = async (companyData) => {
   if (existingCompany) {
     throw new AppError("El correo electrónico ya está registrado", 409);
   }
+
   const createdCompany = await companyRepository.createCompany({
     ...rest,
     user_id,
     email,
   });
-  return createdCompany;
+  const companyRoleId = await findRoleByName("Empresa");
+  if (!companyRoleId) {
+    return { company: createdCompany, tokens: null };
+  }
+  const updatedUser = await updateUserRole(user_id, companyRoleId);
+  const tokenPayload = {
+    id: updatedUser.id,
+    email: updatedUser.email,
+    role_id: updatedUser.role_id,
+    role_name: updatedUser.role_name,
+  };
+
+  const accessToken = signAccessToken(tokenPayload);
+  const refreshToken = signRefreshToken({ id: updatedUser.id });
+
+  return {
+    company: createdCompany,
+    tokens: {
+      accessToken,
+      refreshToken,
+      expiresIn: "24h",
+    },
+  };
 };
 
 export const getCompanyService = async ({

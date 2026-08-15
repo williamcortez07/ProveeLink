@@ -198,6 +198,44 @@ export const verifyEmailService = async ({ email, otp }) => {
  * Solo para cuentas con status = 'pending'.
  * Genera un nuevo OTP, actualiza verify_email y envía el correo.
  */
+/**
+ * Servicio de actualización de tokens con rol vigente.
+ * Lee el rol actual desde la base de datos y emite nuevos JWT.
+ * Útil cuando el cliente tiene un token con rol desactualizado
+ * (p.ej., después de crear una empresa sin haber recibido los nuevos tokens).
+ *
+ * @param {string} userId - UUID del usuario autenticado (obtenido de req.user)
+ * @returns {{ accessToken: string, refreshToken: string, expiresIn: string, role_name: string }}
+ */
+export const upgradeRoleService = async (userId) => {
+  const user = await getUserForAuthById(userId);
+
+  if (!user) {
+    throw new AppError("Usuario no encontrado.", 404);
+  }
+
+  if (user.status !== "active") {
+    throw new AppError("La cuenta no está activa.", 403);
+  }
+
+  const tokenPayload = {
+    id: user.id,
+    email: user.email,
+    role_id: user.role_id,
+    role_name: user.role_name,
+  };
+
+  const accessToken = signAccessToken(tokenPayload);
+  const refreshToken = signRefreshToken({ id: user.id });
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresIn: "24h",
+    role_name: user.role_name,
+  };
+};
+
 export const resendOtpService = async ({ email }) => {
   // 1. Verificar que el usuario exista con status 'pending'
   const user = await findUserByEmailForAuth(email);

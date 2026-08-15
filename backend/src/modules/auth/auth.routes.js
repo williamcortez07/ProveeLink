@@ -10,6 +10,7 @@ import {
   resendOtpSchema,
 } from "./auth.schema.js";
 
+
 const router = Router();
 
 /**
@@ -500,4 +501,78 @@ router.post(
   authController.resendOtp,
 );
 
+/**
+ * @openapi
+ * /api/v1/auth/upgrade-role:
+ *   post:
+ *     summary: Obtener tokens frescos con el rol actual de la cuenta
+ *     description: >-
+ *       Endpoint protegido que re-emite un access token y refresh token leyendo
+ *       el rol vigente del usuario directamente desde la base de datos.
+ *       Se usa principalmente después de crear una empresa, cuando el JWT
+ *       antiguo todavía refleja el rol "Cliente" en lugar de "Empresa".
+ *       El cliente debe reemplazar sus tokens almacenados con los que devuelve
+ *       este endpoint.
+ *     tags:
+ *       - Autenticación
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Tokens actualizados exitosamente con el rol vigente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Tokens actualizados. Rol vigente: Empresa"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                       description: Nuevo JWT de acceso con el rol correcto (24h).
+ *                     refreshToken:
+ *                       type: string
+ *                       description: Nuevo refresh token (7 días).
+ *                     expiresIn:
+ *                       type: string
+ *                       example: "24h"
+ *                     role_name:
+ *                       type: string
+ *                       description: Nombre del rol actual del usuario.
+ *                       example: "Empresa"
+ *       401:
+ *         description: No autenticado o token inválido.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: La cuenta no está activa.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Usuario no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post("/upgrade-role", authenticate, authController.upgradeRole);
+
 export default router;
+

@@ -60,14 +60,22 @@ const options = {
           type: "object",
           properties: {
             success: { type: "boolean", example: false },
-            message: { type: "string", example: "Acceso denegado. Se requiere un token de autenticación." },
+            message: {
+              type: "string",
+              example:
+                "Acceso denegado. Se requiere un token de autenticación.",
+            },
           },
         },
         ForbiddenError: {
           type: "object",
           properties: {
             success: { type: "boolean", example: false },
-            message: { type: "string", example: "No tienes permisos suficientes para realizar esta acción." },
+            message: {
+              type: "string",
+              example:
+                "No tienes permisos suficientes para realizar esta acción.",
+            },
           },
         },
       },
@@ -102,8 +110,6 @@ export const setupSwagger = (app) => {
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec, swaggerUiOptions),
   );
-
-  // Endpoint JSON para consumo externo o exportación de la spec
   app.get("/api-docs.json", (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
