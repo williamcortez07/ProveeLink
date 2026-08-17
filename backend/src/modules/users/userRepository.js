@@ -291,3 +291,29 @@ export const updateUserStatus = async (id, status) => {
     throw new Error("Error al actualizar el estado del usuario");
   }
 };
+
+/**
+ *
+ * @param {string} id - UUID del usuario
+ * @param {string} roleId - UUID del nuevo rol
+ * @returns {Promise<object>} Usuario actualizado con role_name incluido
+ */
+export const updateUserRole = async (id, roleId) => {
+  try {
+    const sql = `
+      UPDATE public.users
+      SET role_id = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING id;
+    `;
+    await query(sql, [roleId, id]);
+    return getUserById(id);
+  } catch (err) {
+    if (err.code === "23503") {
+      logger.warn({ id, roleId }, "FK violation al actualizar rol de usuario");
+      throw new AppError("El rol especificado no existe", 400);
+    }
+    logger.error({ err, id, roleId }, "Error en updateUserRole");
+    throw new Error("Error al actualizar el rol del usuario");
+  }
+};

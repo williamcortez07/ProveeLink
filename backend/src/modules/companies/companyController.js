@@ -2,12 +2,25 @@ import * as companyService from "../companies/companyService.js";
 import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const createCompany = asyncWrapper(async (req, res) => {
-  const newCompany = await companyService.createCompanyService(req.body);
-  res.status(201).json({
+  const result = await companyService.createCompanyService(req.body);
+  const { company, tokens } = result;
+
+  const responseBody = {
     success: true,
     message: "Empresa registrada exitosamente",
-    data: newCompany,
-  });
+    data: company,
+  };
+  if (tokens) {
+    responseBody.auth = {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresIn: tokens.expiresIn,
+      message:
+        "Tu rol ha sido actualizado a Empresa. Reemplaza tus tokens de sesión.",
+    };
+  }
+
+  res.status(201).json(responseBody);
 });
 
 export const getCompanies = asyncWrapper(async (req, res) => {

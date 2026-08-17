@@ -1,5 +1,3 @@
-
--- Activar la extensión para generar UUIDs de forma nativa (PostgreSQL 13 o superior ya lo trae por defecto, pero es buena práctica asegurarlo)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ==========================================
@@ -85,7 +83,7 @@ CREATE TABLE categories (
     CONSTRAINT fk_categories_parent FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL,
     CONSTRAINT chk_categories_status CHECK (status IN ('active', 'inactive')),
     -- Evita que una categoría se repita bajo el mismo padre
-    CONSTRAINT uq_categories_name_parent UNIQUE (name, parent_id) 
+    CONSTRAINT uq_categories_name_parent UNIQUE (name, parent_id)
 );
 
 -- Índices para optimizar búsquedas jerárquicas
@@ -192,7 +190,7 @@ CREATE TABLE product_tags (
 
     -- Llave primaria compuesta: evita que un producto tenga la misma etiqueta dos veces
     PRIMARY KEY (product_id, tag_id),
-    
+
     -- Restricciones (Constraints)
     CONSTRAINT fk_product_tags_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     CONSTRAINT fk_product_tags_tag FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
@@ -263,10 +261,10 @@ CREATE TABLE comments (
     CONSTRAINT fk_comments_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
     CONSTRAINT fk_comments_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     CONSTRAINT chk_comments_status CHECK (status IN ('visible', 'hidden', 'under_review')),
-    
+
     -- Integridad: El comentario debe estar amarrado obligatoriamente a algo (Proveedor O Producto)
     CONSTRAINT chk_comment_target CHECK (
-        (supplier_id IS NOT NULL AND product_id IS NULL) OR 
+        (supplier_id IS NOT NULL AND product_id IS NULL) OR
         (supplier_id IS NULL AND product_id IS NOT NULL)
     )
 );
@@ -292,10 +290,10 @@ CREATE TABLE ratings (
     CONSTRAINT fk_ratings_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
     CONSTRAINT fk_ratings_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     CONSTRAINT chk_ratings_score CHECK (score BETWEEN 1 AND 5),
-    
+
     -- Integridad: La calificación debe ser para un proveedor o para un producto, no ambos ni ninguno
     CONSTRAINT chk_rating_target CHECK (
-        (supplier_id IS NOT NULL AND product_id IS NULL) OR 
+        (supplier_id IS NOT NULL AND product_id IS NULL) OR
         (supplier_id IS NULL AND product_id IS NOT NULL)
     ),
 
@@ -323,10 +321,10 @@ CREATE TABLE favorites (
     CONSTRAINT fk_favorites_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_favorites_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
     CONSTRAINT fk_favorites_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    
+
     -- Integridad: Debe guardar un proveedor favorito O un producto favorito
     CONSTRAINT chk_favorite_target CHECK (
-        (supplier_id IS NOT NULL AND product_id IS NULL) OR 
+        (supplier_id IS NOT NULL AND product_id IS NULL) OR
         (supplier_id IS NULL AND product_id IS NOT NULL)
     ),
 
@@ -345,8 +343,8 @@ user_id UUID NULL,
 email VARCHAR(150) NOT NULL UNIQUE,
 code_otp VARCHAR(250),
 verification_type VARCHAR(20) DEFAULT  'registro', -- 'registro', 'recuperación','cambio_correo'
-created_on TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
+created_on TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 expires_in TIMESTAMP WITH TIME ZONE NOT NULL,
 used BOOLEAN DEFAULT FALSE,
-failed_attempts INT DEFAULT 0 
+failed_attempts INT DEFAULT 0
 );
