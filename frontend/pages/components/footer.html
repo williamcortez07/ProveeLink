@@ -1,0 +1,32 @@
+<!-- ============================================================
+     FOOTER (fragmento)
+     Se inyecta dinámicamente vía footer.js dentro de
+     <div id="footer-target"></div>, ubicado en el área
+     "footer" del grid .app-layout.
+
+     Intencionalmente simple en HTML — el comportamiento
+     (mostrar/ocultar botón "volver arriba", sombra al hacer
+     scroll, etc.) vive en footer.css / footer.js.
+     ============================================================ -->
+<footer class="site-footer" id="siteFooter" role="contentinfo">
+  <div class="footer-inner">
+    <p class="footer-copy">© <span id="footerYear">2026</span> ProveeLink. Todos los derechos reservados.</p>
+
+    <button
+      type="button"
+      class="footer-back-to-top"
+      id="backToTopBtn"
+      aria-label="Volver arriba"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+        <path
+          d="M12 19V5M5 12l7-7 7 7"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  </div>
+</footer>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProveeLink · Conectamos Nicaragua con los mejores proveedores</title>
+    <meta
+      name="description"
+      content="Encuentra proveedores confiables en Nicaragua. Explora categorías, compara proveedores y haz crecer tu negocio con ProveeLink."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/base/globals.css" />
+    <link rel="stylesheet" href="../css/components/sidebar.css" />
+    <link rel="stylesheet" href="../css/components/navbar.css" />
+    <link rel="stylesheet" href="../css/components/footer.css" />
+    <link rel="stylesheet" href="../css/layout/home.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <div id="sidebar-target"></div>
+      <div id="navbar-target"></div>
+
+      <main>
+        <section class="hero">
+          <div class="hero-inner">
+            <h1 class="hero-title">
+              Conectamos Nicaragua con los mejores proveedores
+            </h1>
+            <p class="hero-subtitle">
+              Encuentra proveedores confiables en todo el país y haz crecer tu
+              negocio con quienes impulsan nuestra economía.
+            </p>
+
+            <form class="search-bar" role="search" id="searchForm">
+              <svg
+                class="search-icon"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+                <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <input
+                id="searchInput"
+                class="search-input"
+                type="search"
+                placeholder="¿Qué proveedor estás buscando?"
+                aria-label="Buscar proveedores"
+                autocomplete="off"
+              />
+              <button class="search-btn" type="submit" aria-label="Buscar">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+                  <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </button>
+            </form>
+          </div>
+        </section>
+        <!--categorias-->
+        <section class="section">
+          <div class="section-inner">
+            <div class="section-header">
+              <h2 class="section-title">
+                Explora por categorías
+                <small id="categoriesCount" style="font-size:0.75rem;font-weight:500;color:var(--color-ink-soft);"></small>
+              </h2>
+              <a href="category.html" class="link-more">
+                Ver todas <span aria-hidden="true">›</span>
+              </a>
+            </div>
+            <div class="categories-grid" id="categoriesGrid" aria-live="polite" aria-label="Categorías de proveedores">
+              <!-- Aqui se carga el contenido dinámicamente -->
+            </div>
+          </div>
+        </section>
+
+        <section class="section section-alt">
+          <div class="section-inner">
+            <div class="section-header">
+              <h2 class="section-title">
+                <span class="dot" aria-hidden="true"></span>
+                <span id="suppliersSectionTitle">Proveedores destacados</span>
+                <small id="suppliersCount" style="font-size:0.75rem;font-weight:500;color:var(--color-ink-soft);margin-left:4px;"></small>
+              </h2>
+              <a href="../pages/supplier/supplier.html" class="link-more">
+                Ver todos <span aria-hidden="true">›</span>
+              </a>
+            </div>
+            <div class="providers-grid" id="providersGrid" aria-live="polite" aria-label="Lista de proveedores">
+            </div>
+          </div>
+        </section>
+      </main>
+      <div id="footer-target"></div>
+    </div>
+
+    <script type="module" src="../js/utils/sidebar.js"></script>
+    <script type="module" src="../js/utils/navbar.js"></script>
+    <script type="module" src="../js/utils/footer.js"></script>
+    <script type="module" src="../js/home.js"></script>
+  </body>
+</html>

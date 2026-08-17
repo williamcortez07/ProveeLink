@@ -288,6 +288,12 @@ router.use(authenticate);
  *           type: string
  *           format: uuid
  *         description: Filtrar proveedores pertenecientes a una empresa específica.
+ *       - in: query
+ *         name: category_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filtrar proveedores que ofrecen productos pertenecientes a una categoría específica (o sus subcategorías).
  *     responses:
  *       200:
  *         description: Listado de proveedores obtenido con éxito.

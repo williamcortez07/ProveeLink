@@ -13,19 +13,55 @@ const ALLOWED_SORT_FIELDS = new Set([
   "updated_at",
 ]);
 
+import { findRoleByName } from "../auth/auth.repository.js";
+import { updateUserRole } from "../users/userRepository.js";
+import { signAccessToken, signRefreshToken } from "../../utils/jwt.js";
+
 export const createSupplierService = async (supplierData) => {
   const { company_id, ...rest } = supplierData;
   const company = await companyrepository.getCompanyById(company_id);
   if (!company) {
-    throw new AppError("La empresa especificada no existe en nuestro sistema");
+    throw new AppError("La empresa especificada no existe en nuestro sistema", 404);
   }
 
-  const createSupplier = await supplierRepository.createSupplier({
+  const createdSupplier = await supplierRepository.createSupplier({
     ...rest,
     company_id,
     status: DEFAULT_STATUS,
   });
-  return createSupplier;
+
+  // Intentar actualizar el rol del usuario a Proveedor si existe
+  let tokens = null;
+  const supplierRoleId = (await findRoleByName("Proveedor")) || (await findRoleByName("Proveedores"));
+  if (supplierRoleId && company.user_id) {
+    try {
+      const updatedUser = await updateUserRole(company.user_id, supplierRoleId);
+      if (updatedUser) {
+        const tokenPayload = {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          role_id: updatedUser.role_id,
+          role_name: updatedUser.role_name,
+        };
+        const accessToken = signAccessToken(tokenPayload);
+        const refreshToken = signRefreshToken({ id: updatedUser.id });
+        tokens = {
+          accessToken,
+          refreshToken,
+          expiresIn: "24h",
+          role_name: updatedUser.role_name,
+        };
+      }
+    } catch {
+      // Ignorar si el rol de usuario ya estaba asignado
+    }
+  }
+
+  return { supplier: createdSupplier, tokens };
+};
+
+export const getSupplierByCompanyIdService = async (companyId) => {
+  return supplierRepository.getSupplierByCompanyId(companyId);
 };
 
 export const getSuppliersService = async ({
@@ -35,6 +71,7 @@ export const getSuppliersService = async ({
   sortOrder,
   status,
   company_id,
+  category_id,
 }) => {
   const safeSortby = ALLOWED_SORT_FIELDS.has(sortBy) ? sortBy : "created_at";
   const safeSortOrder = sortOrder === "asc" ? "asc" : "desc";
@@ -43,7 +80,7 @@ export const getSuppliersService = async ({
   const { data, total } = await supplierRepository.getSuppliers({
     limit: pageSize,
     offset,
-    filters: { status, company_id },
+    filters: { status, company_id, category_id },
     sortBy: safeSortby,
     sortOrder: safeSortOrder,
   });

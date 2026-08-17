@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Categorías · ProveeLink</title>
+    <meta
+      name="description"
+      content="Explora todas las categorías de proveedores disponibles en ProveeLink."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/base/globals.css" />
+    <link rel="stylesheet" href="../css/components/sidebar.css" />
+    <link rel="stylesheet" href="../css/components/navbar.css" />
+    <link rel="stylesheet" href="../css/components/footer.css" />
+    <link rel="stylesheet" href="../css/layout/home.css" />
+    <!-- cambiar por estilos de category-->
+  </head>
+  <body>
+    <div class="app-layout">
+      <div id="sidebar-target"></div>
+      <div id="navbar-target"></div>
+
+      <main>
+        <section class="section">
+          <div class="section-inner">
+            <div class="section-header">
+              <h1 class="section-title">Categorías</h1>
+            </div>
+            <div id="categoriesGrid" class="categories-grid" aria-live="polite">
+              <!-- Las categorías se renderizan aquí vía categories.js -->
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div id="footer-target"></div>
+    </div>
+
+    <script type="module" src="../js/utils/sidebar.js"></script>
+    <script type="module" src="../js/utils/navbar.js"></script>
+    <script type="module" src="../js/utils/footer.js"></script>
+    <script type="module" src="../js/categories.js"></script>
+  </body>
+</html>

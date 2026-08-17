@@ -41,6 +41,7 @@ export const getSupplierSchema = z.object({
     sortBy: z.string().trim().optional(),
     sortOrder: z.enum(["asc", "desc"]).optional(),
     company_id: uuidSchema.optional(),
+    category_id: uuidSchema.optional(),
   }),
 });
 

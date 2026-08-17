@@ -4,7 +4,7 @@ import * as categoryRepository from "../categories/categoryRepository.js";
 import { AppError } from "../../utils/AppError.js";
 
 const DEFAULT_STATUS = "activo";
-const ALLOWEB_SORT_FIELDS = new Set([
+const ALLOWED_SORT_FIELDS = new Set([
   "name",
   "description",
   "price",
@@ -19,7 +19,8 @@ const ALLOWEB_SORT_FIELDS = new Set([
 ]);
 
 export const createProductService = async (productData) => {
-  const { name, supplier_id, category_id, ...rest } = productData;
+  const { name, supplier_id, category_id, image_url, ...rest } = productData;
+
   const supplier = await supplierRepository.getSupplierById(supplier_id);
   if (!supplier) {
     throw new AppError(
@@ -31,44 +32,46 @@ export const createProductService = async (productData) => {
   const category = await categoryRepository.getCategoryById(category_id);
   if (!category) {
     throw new AppError(
-      "La categoria especificada no existe en nuestro sistema",
+      "La categoría especificada no existe en nuestro sistema",
       400,
     );
   }
 
-  // si un proveedor ya tiene registrado un producto bajo el mismo
-  // nombre no puede registrarlo nuevamente // incluir descripción
-  // pero al ser una plataforma con muchos usuarios(proveedore) el mismo producto puede existir varias veces ya que los proveedores son distintis
-  // con caracteristicas distintas
-  /* const existingProduct = await productRepository.searchProducts(name);
-  if (
-    existingProduct &&
-    existingProduct.data.concat.name.supplier.supplier_id
-  ) {
-    throw new AppError("El producto ya se encuentra registrado", 409);
-  }
-
-  */
-
   const createdProduct = await productRepository.createProduct({
     ...rest,
+    name,
     supplier_id,
     category_id,
     status: DEFAULT_STATUS,
   });
+
+  if (image_url) {
+    try {
+      await productRepository.addProductImage({
+        product_id: createdProduct.id,
+        image_url,
+        is_primary: true,
+        display_order: 0,
+      });
+      createdProduct.primary_image_url = image_url;
+    } catch (imgErr) {
+      console.warn("No se pudo asociar la imagen inicial del producto:", imgErr);
+    }
+  }
+
   return createdProduct;
 };
 
 export const getProductService = async ({
-  page,
-  pageSize,
-  sortBy,
-  sortOrder,
+  page = 1,
+  pageSize = 10,
+  sortBy = "created_at",
+  sortOrder = "desc",
   status,
   supplier_id,
   category_id,
 }) => {
-  const safeSortBy = ALLOWEB_SORT_FIELDS.has(sortBy) ? sortBy : "created_at";
+  const safeSortBy = ALLOWED_SORT_FIELDS.has(sortBy) ? sortBy : "created_at";
   const safeSortOrder = sortOrder === "asc" ? "asc" : "desc";
   const offSet = (page - 1) * pageSize;
 
@@ -86,12 +89,12 @@ export const getProductService = async ({
       page,
       pageSize,
       totalItems: total,
-      totalPages: Math.ceil(total / pageSize),
+      totalPages: Math.ceil(total / pageSize) || 1,
     },
   };
 };
 
-export const searchProductsService = async ({ query, page, pageSize }) => {
+export const searchProductsService = async ({ query, page = 1, pageSize = 10 }) => {
   const offset = (page - 1) * pageSize;
   const { data, total } = await productRepository.searchProducts({
     query,
@@ -104,7 +107,7 @@ export const searchProductsService = async ({ query, page, pageSize }) => {
       page,
       pageSize,
       totalItems: total,
-      totalPages: Math.ceil(total / pageSize),
+      totalPages: Math.ceil(total / pageSize) || 1,
     },
   };
 };
@@ -147,7 +150,7 @@ export const updateProductService = async (id, updateData) => {
     );
     if (!category) {
       throw new AppError(
-        "La categoria especificada no existe en nuestro sistema",
+        "La categoría especificada no existe en nuestro sistema",
         400,
       );
     }
@@ -162,19 +165,58 @@ export const changeProductStatusService = async (id, status) => {
   if (!product) {
     throw new AppError("Producto no encontrado", 404);
   }
-  const currentStatus = product.status;
-  const allowedTransitions = {
-    activo: ["agotado", "no disponible", "disponible"],
-    agotado: ["no disponible", "disponible"],
-    no_disponible: ["agotado", "disponible"],
-    disponible: ["agotado", "no disponible"],
-  };
-  if (!allowedTransitions[currentStatus]?.includes(status)) {
-    throw new AppError("transición de estado no permitida ", 400);
-  }
+
   const updatedStatusProduct = await productRepository.updateProductStatus(
     id,
     status,
   );
   return updatedStatusProduct;
+};
+
+export const deleteProductService = async (id) => {
+  const product = await productRepository.getProductById(id);
+  if (!product) {
+    throw new AppError("Producto no encontrado", 404);
+  }
+  const deleted = await productRepository.deleteProduct(id);
+  return deleted;
+};
+
+// ── PRODUCT IMAGES SERVICE ───────────────────────────────────────────────────
+
+export const getProductImagesService = async (productId) => {
+  const product = await productRepository.getProductById(productId);
+  if (!product) {
+    throw new AppError("Producto no encontrado", 404);
+  }
+  return productRepository.getProductImages(productId);
+};
+
+export const addProductImageService = async (productId, imageData) => {
+  const product = await productRepository.getProductById(productId);
+  if (!product) {
+    throw new AppError("Producto no encontrado", 404);
+  }
+
+  const newImage = await productRepository.addProductImage({
+    product_id: productId,
+    image_url: imageData.image_url,
+    is_primary: imageData.is_primary ?? false,
+    display_order: imageData.display_order ?? 0,
+  });
+
+  return newImage;
+};
+
+export const deleteProductImageService = async (productId, imageId) => {
+  const product = await productRepository.getProductById(productId);
+  if (!product) {
+    throw new AppError("Producto no encontrado", 404);
+  }
+
+  const deleted = await productRepository.deleteProductImage(imageId, productId);
+  if (!deleted) {
+    throw new AppError("La imagen especificada no existe para este producto", 404);
+  }
+  return { id: imageId };
 };

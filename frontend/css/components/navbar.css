@@ -1,0 +1,219 @@
+/* ============================================================
+   NAVBAR.CSS
+   Estilos exclusivos del componente Navbar (header principal).
+   Toda variable de color/tipografía/espaciado/radio/sombra
+   proviene de globals.css — aquí NO se redefine ningún token.
+   ============================================================ */
+/* globals.css se carga antes mediante <link> en el HTML */
+
+/* ---------------------------------------------------------
+   Contenedor raíz
+   --------------------------------------------------------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  transition: box-shadow var(--trans-fast);
+}
+
+.site-header.is-scrolled {
+  box-shadow: 0 2px 16px -4px rgba(23, 37, 31, 0.1);
+}
+
+/* Fila interna: alinea todos los elementos horizontalmente */
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--header-height);
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---------------------------------------------------------
+   Botón hamburguesa (controla el sidebar)
+   --------------------------------------------------------- */
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--trans-fast),
+    border-color var(--trans-fast);
+}
+.nav-toggle:hover {
+  background: var(--color-bg-alt);
+  border-color: var(--color-primary);
+}
+
+/* ---------------------------------------------------------
+   Logotipo / Marca
+   --------------------------------------------------------- */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--color-ink);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.brand-mark {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.brand:hover .brand-mark {
+  transform: scale(1.12) rotate(-4deg);
+}
+.brand-name {
+  letter-spacing: -0.01em;
+}
+
+/* ---------------------------------------------------------
+   Navegación principal (oculta en móvil, visible en desktop)
+   --------------------------------------------------------- */
+.main-nav {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+}
+.main-nav-link {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.93rem;
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  transition:
+    background var(--trans-fast),
+    color var(--trans-fast);
+  position: relative;
+}
+.main-nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  transition: transform 0.2s ease;
+}
+.main-nav-link:hover {
+  background: var(--color-bg-alt);
+  color: var(--color-ink);
+}
+.main-nav-link:hover::after {
+  transform: translateX(-50%) scaleX(1);
+}
+.main-nav-link.is-active {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+.main-nav-link.is-active::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+/* ---------------------------------------------------------
+   Acciones del header
+   --------------------------------------------------------- */
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Botón primario: siempre muestra texto; ícono solo desde tablet */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--trans-fast),
+    transform 0.12s ease;
+  background: var(--color-primary);
+  color: #fff;
+  height: 36px;
+  padding: 0 14px;
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+.btn-primary-text {
+  display: inline; /* siempre visible */
+}
+.btn-primary-icon {
+  display: none; /* oculto en móvil para ahorrar espacio */
+  flex-shrink: 0;
+}
+
+.banner {
+  width: 7%;
+  height: 7%;
+}
+/* ---------------------------------------------------------
+   Tablet ≥ 700px
+   --------------------------------------------------------- */
+@media (min-width: 700px) {
+  .header-inner {
+    gap: 16px;
+  }
+  /* Muestra el ícono junto al texto desde tablet */
+  .btn-primary-icon {
+    display: block;
+  }
+  .btn-primary {
+    height: 38px;
+    padding: 0 16px;
+    gap: 8px;
+  }
+}
+
+/* ---------------------------------------------------------
+   Desktop ≥ 1024px
+   --------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .nav-toggle {
+    display: none;
+  }
+  .main-nav {
+    display: flex;
+  }
+  .btn-primary {
+    height: 42px;
+    padding: 0 20px;
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,27 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProveeLink</title>
+    <link rel="stylesheet" href="./css/base/globals.css" />
+    <link rel="stylesheet" href="./css/components/sidebar.css" />
+    <link rel="stylesheet" href="./css/components/login.css" />
+    <!-- Estilos globales y de layout -->
+  </head>
+  <body>
+    <!-- Contenedor del Topbar Global -->
+    <header id="topbar-container"></header>
+
+    <div class="layout-body">
+      <!-- Contenedor del Sidebar Global -->
+      <aside id="sidebar-container"></aside>
+
+      <!-- Vista Dinámica controlada por el Router -->
+      <main id="app-content"></main>
+    </div>
+
+    <script type="module" src="./js/auth.js"></script>
+  </body>
+</html>

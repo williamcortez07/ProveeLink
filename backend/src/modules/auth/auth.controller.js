@@ -63,3 +63,17 @@ export const resendOtp = asyncWrapper(async (req, res) => {
     message: result.message,
   });
 });
+
+export const upgradeRole = asyncWrapper(async (req, res) => {
+  const result = await authService.upgradeRoleService(req.user.id);
+  res.status(200).json({
+    success: true,
+    message: `Tokens actualizados. Rol vigente: ${result.role_name}`,
+    data: {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      expiresIn: result.expiresIn,
+      role_name: result.role_name,
+    },
+  });
+});

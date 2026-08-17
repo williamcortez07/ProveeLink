@@ -62,3 +62,45 @@ export const changeProductStatus = asyncWrapper(async (req, res) => {
     data: updatedProduct,
   });
 });
+
+export const deleteProduct = asyncWrapper(async (req, res) => {
+  await productService.deleteProductService(req.params.id);
+  res.status(200).json({
+    success: true,
+    message: "Producto eliminado correctamente",
+  });
+});
+
+// ── PRODUCT IMAGES CONTROLLERS ─────────────────────────────────────────────
+
+export const getProductImages = asyncWrapper(async (req, res) => {
+  const images = await productService.getProductImagesService(req.params.id);
+  res.status(200).json({
+    success: true,
+    message: "Imágenes del producto recuperadas exitosamente",
+    data: images,
+  });
+});
+
+export const addProductImage = asyncWrapper(async (req, res) => {
+  const newImage = await productService.addProductImageService(
+    req.params.id,
+    req.body,
+  );
+  res.status(201).json({
+    success: true,
+    message: "Imagen agregada al producto correctamente",
+    data: newImage,
+  });
+});
+
+export const deleteProductImage = asyncWrapper(async (req, res) => {
+  await productService.deleteProductImageService(
+    req.params.id,
+    req.params.imageId,
+  );
+  res.status(200).json({
+    success: true,
+    message: "Imagen eliminada del producto correctamente",
+  });
+});

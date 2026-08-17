@@ -1,6 +1,9 @@
 import * as companyRepository from "../companies/companyRepository.js";
 import * as userRepository from "../users/userRepository.js";
+import { findRoleByName } from "../auth/auth.repository.js";
+import { signAccessToken, signRefreshToken } from "../../utils/jwt.js";
 import { AppError } from "../../utils/AppError.js";
+const { updateUserRole } = userRepository;
 
 const ALLOWED_SORT_FIELDS = new Set([
   "name",
@@ -19,21 +22,52 @@ const ALLOWED_SORT_FIELDS = new Set([
 ]);
 
 export const createCompanyService = async (companyData) => {
-  const { email, user_id, ...rest } = companyData;
+  const { email, user_id, tax_id, ...rest } = companyData;
   const user = await userRepository.getUserById(user_id);
   if (!user) {
     throw new AppError("El usuario especificado no existe", 400);
   }
-  const existingCompany = await companyRepository.getCompanyByEmail(email);
-  if (existingCompany) {
-    throw new AppError("El correo electrónico ya está registrado", 409);
+  const existingCompanyByEmail = await companyRepository.getCompanyByEmail(email);
+  if (existingCompanyByEmail) {
+    throw new AppError("El correo electrónico ya está registrado por otra empresa", 409);
   }
+  if (tax_id) {
+    const existingCompanyByTaxId = await companyRepository.getCompanyByTaxId(tax_id);
+    if (existingCompanyByTaxId) {
+      throw new AppError("El número de identificación fiscal ya está registrado por otra empresa", 409);
+    }
+  }
+
   const createdCompany = await companyRepository.createCompany({
     ...rest,
     user_id,
     email,
+    ...(tax_id ? { tax_id } : {}),
   });
-  return createdCompany;
+  const companyRoleId = (await findRoleByName("Empresas")) || (await findRoleByName("Empresa"));
+  if (!companyRoleId) {
+    return { company: createdCompany, tokens: null };
+  }
+  const updatedUser = await updateUserRole(user_id, companyRoleId);
+  const tokenPayload = {
+    id: updatedUser.id,
+    email: updatedUser.email,
+    role_id: updatedUser.role_id,
+    role_name: updatedUser.role_name,
+  };
+
+  const accessToken = signAccessToken(tokenPayload);
+  const refreshToken = signRefreshToken({ id: updatedUser.id });
+
+  return {
+    company: createdCompany,
+    tokens: {
+      accessToken,
+      refreshToken,
+      expiresIn: "24h",
+      role_name: updatedUser.role_name,
+    },
+  };
 };
 
 export const getCompanyService = async ({

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proveedores por Categoría · ProveeLink</title>
+    <meta
+      name="description"
+      content="Explora los proveedores disponibles para la categoría seleccionada en ProveeLink."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/base/globals.css" />
+    <link rel="stylesheet" href="../css/components/sidebar.css" />
+    <link rel="stylesheet" href="../css/components/navbar.css" />
+    <link rel="stylesheet" href="../css/components/footer.css" />
+    <link rel="stylesheet" href="../css/layout/home.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <div id="sidebar-target"></div>
+      <div id="navbar-target"></div>
+
+      <main>
+        <section class="section">
+          <div class="section-inner">
+            <nav class="breadcrumb" style="margin-bottom: 16px;">
+              <a href="../pages/category.html" class="link-more" style="display: inline-flex; align-items: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Volver a Categorías
+              </a>
+            </nav>
+
+            <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 24px;">
+              <h1 id="categoryTitle" class="section-title" style="font-size: 1.5rem;">
+                <span class="dot"></span>
+                <span>Cargando categoría...</span>
+              </h1>
+              <p id="categorySubtitle" style="color: var(--color-ink-soft); font-size: 0.95rem; margin: 0;">
+                Buscando proveedores asociados...
+              </p>
+            </div>
+
+            <div id="providersGrid" class="providers-grid" aria-live="polite">
+              <!-- Los proveedores se renderizan aquí dinámicamente vía categoryInfo.js -->
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div id="footer-target"></div>
+    </div>
+
+    <script type="module" src="../js/utils/sidebar.js"></script>
+    <script type="module" src="../js/utils/navbar.js"></script>
+    <script type="module" src="../js/utils/footer.js"></script>
+    <script type="module" src="../js/categoryInfo.js"></script>
+  </body>
+</html>

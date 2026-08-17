@@ -1,0 +1,390 @@
+/**
+ * @file createSupplier.css
+ * @description Estilos para la vista "Registrar Proveedor / Convertir Empresa en Proveedor".
+ *
+ * Sigue la guía de diseño de globals.css y createCompany.css.
+ * Totalmente responsivo para móvil, tablet y desktop.
+ */
+
+/* ─── Contenedor principal de la vista ────────────────────────────────────── */
+.create-supplier-wrapper {
+  padding: var(--gutter);
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+/* ─── Breadcrumb ───────────────────────────────────────────────────────────── */
+.breadcrumb-nav {
+  margin-bottom: 20px;
+}
+
+.breadcrumb-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--trans-fast);
+}
+
+.breadcrumb-back-link:hover {
+  color: var(--color-primary-green);
+}
+
+/* ─── Encabezado ──────────────────────────────────────────────────────────── */
+.create-supplier-header {
+  margin-bottom: 28px;
+}
+
+.create-supplier-header__icon-wrap {
+  width: 56px;
+  height: 56px;
+  background-color: var(--tint-green);
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-green);
+  margin-bottom: 16px;
+}
+
+.create-supplier-header__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 6px;
+}
+
+.create-supplier-header__subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* ─── Tarjeta Informativa de Empresa Vinculada ───────────────────────────── */
+.company-summary-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-input);
+  border-left: 4px solid var(--color-primary-green);
+  border-radius: var(--radius-medium);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.company-summary-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.company-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-green);
+  background-color: var(--tint-green);
+  padding: 4px 10px;
+  border-radius: 20px;
+  align-self: flex-start;
+}
+
+.company-summary-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+.company-summary-card__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-input);
+}
+
+@media (min-width: 540px) {
+  .company-summary-card__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-item__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-item__value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  word-break: break-word;
+}
+
+/* ─── Formulario ──────────────────────────────────────────────────────────── */
+.supplier-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-medium);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-section__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-section__title svg {
+  color: var(--color-primary-green);
+  flex-shrink: 0;
+}
+
+/* ─── Campos ──────────────────────────────────────────────────────────────── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field-group:last-child {
+  margin-bottom: 0;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 540px) {
+  .field-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.field-label .required-mark {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-small);
+  font-size: 0.92rem;
+  font-family: var(--font-body);
+  color: var(--color-text-main);
+  background-color: var(--color-bg-canvas);
+  transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: var(--color-primary-green);
+  box-shadow: 0 0 0 3px rgba(36, 179, 75, 0.12);
+  background-color: var(--color-bg-card);
+}
+
+.field-input.is-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+textarea.field-input {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%3A6B7280' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+.field-error-msg {
+  font-size: 0.8rem;
+  color: #ef4444;
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.field-error-msg.is-visible {
+  display: flex;
+}
+
+.field-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* ─── Pie del Formulario / Submit ─────────────────────────────────────────── */
+.form-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+  padding-bottom: 32px;
+}
+
+.btn-create-supplier {
+  width: 100%;
+  padding: 14px 20px;
+  background-color: var(--color-primary-green);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(36, 179, 75, 0.28);
+  transition:
+    background-color var(--trans-fast),
+    transform 0.12s ease,
+    box-shadow var(--trans-fast);
+}
+
+.btn-create-supplier:hover:not(:disabled) {
+  background-color: var(--color-primary-green-hover);
+  box-shadow: 0 6px 20px rgba(36, 179, 75, 0.36);
+}
+
+.btn-create-supplier:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-create-supplier:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.spinner-inline {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin-button 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin-button {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Screens de Aviso (Guard States: No Company / Already Supplier) ─────── */
+.status-notice-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 56px var(--gutter);
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+.status-notice-icon {
+  width: 72px;
+  height: 72px;
+  background-color: var(--color-bg-alert);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f59e0b;
+  margin-bottom: 20px;
+}
+
+.status-notice-icon.icon-success {
+  background-color: var(--tint-green);
+  color: var(--color-primary-green);
+}
+
+.status-notice-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 8px;
+}
+
+.status-notice-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* ─── Screen de carga inicial ─────────────────────────────────────────────── */
+.page-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg-canvas);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 9999;
+}
+
+.page-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border-input);
+  border-top-color: var(--color-primary-green);
+  border-radius: 50%;
+  animation: spin-button 0.8s linear infinite;
+}
+
+.page-loading-text {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}

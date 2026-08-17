@@ -1,0 +1,142 @@
+/**
+ * @file company.css
+ * @description Estilos específicos del panel HomeCompany.
+ *
+ * Usa únicamente las variables definidas en globals.css.
+ * No duplica ningún token de diseño global.
+ */
+
+/* ─── Tarjeta de empresa ──────────────────────────────────────────────────── */
+.company-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-large);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+/* ─── Cabecera de la tarjeta ──────────────────────────────────────────────── */
+.company-card__header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.company-card__logo {
+  flex-shrink: 0;
+}
+
+.company-logo-img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-medium);
+  object-fit: cover;
+  border: 1px solid var(--color-border-input);
+}
+
+.company-logo-placeholder {
+  width: 72px;
+  height: 72px;
+  background-color: var(--tint-green);
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-green);
+}
+
+.company-card__header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.company-card__name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  word-break: break-word;
+}
+
+.company-card__badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+.company-card__website {
+  font-size: 0.82rem;
+  color: var(--color-primary-green);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.company-card__website:hover {
+  text-decoration: underline;
+}
+
+/* ─── Descripción ─────────────────────────────────────────────────────────── */
+.company-card__description {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  padding-top: 4px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* ─── Lista de detalles ───────────────────────────────────────────────────── */
+.company-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 16px;
+}
+
+.company-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.company-detail-row svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+/* ─── Acciones ────────────────────────────────────────────────────────────── */
+.company-card__actions {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 16px;
+}
+
+.company-btn-suppliers {
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: var(--radius-medium);
+  font-size: 0.95rem;
+  font-weight: 700;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(36, 179, 75, 0.22);
+  transition:
+    background-color var(--trans-fast),
+    box-shadow var(--trans-fast),
+    transform 0.12s ease;
+}
+
+.company-btn-suppliers:hover {
+  background-color: var(--color-primary-green-hover);
+  box-shadow: 0 6px 18px rgba(36, 179, 75, 0.32);
+  transform: translateY(-1px);
+}

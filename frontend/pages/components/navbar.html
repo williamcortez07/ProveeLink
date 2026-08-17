@@ -1,0 +1,66 @@
+<!-- ============================================================
+     NAVBAR (fragmento)
+     Se inyecta dinámicamente vía navbar.js dentro de
+     <div id="navbar-container"></div> ubicado en el <header>
+     de .app-layout.
+     ============================================================ -->
+<header class="site-header" id="siteHeader" role="banner">
+  <div class="header-inner">
+    <!-- Botón hamburguesa: controla el sidebar (móvil y tablet) -->
+    <button
+      type="button"
+      class="nav-toggle"
+      id="menuToggle"
+      aria-label="Abrir menú de navegación"
+      aria-controls="sidebar"
+      aria-expanded="false"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        width="22"
+        height="22"
+        aria-hidden="true"
+      >
+        <path
+          d="M3 6h18M3 12h18M3 18h18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+
+    <!-- Logotipo / Marca -->
+    <a href="/frontend/pages/home.html" class="brand" aria-label="ProveeLink · Inicio">
+      <img src="/frontend/assets/icons/baner.png" alt="banner" class="banner" />
+      <span class="brand-name"></span>
+    </a>
+
+    <!-- Acciones del header -->
+    <div class="header-actions">
+      <a
+        href="/frontend/pages/company/createCompany.html"
+        class="btn btn-primary"
+        id="publishBusinessBtn"
+      >
+        <span class="btn-primary-text">Publicar mi negocio</span>
+        <svg
+          class="btn-primary-icon"
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 5v14M5 12h14"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </a>
+    </div>
+  </div>
+</header>
