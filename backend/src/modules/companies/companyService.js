@@ -44,7 +44,7 @@ export const createCompanyService = async (companyData) => {
     email,
     ...(tax_id ? { tax_id } : {}),
   });
-  const companyRoleId = await findRoleByName("Empresa");
+  const companyRoleId = (await findRoleByName("Empresas")) || (await findRoleByName("Empresa"));
   if (!companyRoleId) {
     return { company: createdCompany, tokens: null };
   }
@@ -65,6 +65,7 @@ export const createCompanyService = async (companyData) => {
       accessToken,
       refreshToken,
       expiresIn: "24h",
+      role_name: updatedUser.role_name,
     },
   };
 };

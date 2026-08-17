@@ -9,6 +9,8 @@ import {
   productIdParamsSchema,
   updateProductSchema,
   changeStatusSchema,
+  addProductImageSchema,
+  deleteProductImageSchema,
 } from "../products/productSchema.js";
 
 const router = Router();
@@ -802,4 +804,29 @@ router.patch(
   ProductController.changeProductStatus,
 );
 
+router.delete(
+  "/:id",
+  validateRequest(productIdParamsSchema),
+  ProductController.deleteProduct,
+);
+
+router.get(
+  "/:id/images",
+  validateRequest(productIdParamsSchema),
+  ProductController.getProductImages,
+);
+
+router.post(
+  "/:id/images",
+  validateRequest(addProductImageSchema),
+  ProductController.addProductImage,
+);
+
+router.delete(
+  "/:id/images/:imageId",
+  validateRequest(deleteProductImageSchema),
+  ProductController.deleteProductImage,
+);
+
 export default router;
+

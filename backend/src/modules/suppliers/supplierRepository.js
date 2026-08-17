@@ -57,6 +57,13 @@ export const createSupplier = async ({
     const newId = result.rows[0].id;
     return getSupplierById(newId);
   } catch (err) {
+    if (err.code === "23505") {
+      logger.warn({ company_id }, "Empresa ya registrada como proveedor");
+      throw new AppError(
+        "Esta empresa ya está registrada como proveedor en el sistema",
+        409,
+      );
+    }
     if (err.code === "23503") {
       logger.warn({ company_id }, "FK violation al registrar al proveedor");
       throw new AppError(
@@ -67,6 +74,22 @@ export const createSupplier = async ({
     if (err instanceof AppError) throw err;
     logger.error({ err, company_id }, "Error inesperado en createSupplier");
     throw new Error("Error al registrar al proveedor en la base de datos");
+  }
+};
+
+export const getSupplierByCompanyId = async (companyId) => {
+  try {
+    const sql = `
+      SELECT ${supplierColumns}
+      FROM public.suppliers s
+      JOIN public.companies c ON c.id = s.company_id
+      WHERE s.company_id = $1;
+    `;
+    const result = await query(sql, [companyId]);
+    return result.rows[0] ? mapSupplierRow(result.rows[0]) : null;
+  } catch (err) {
+    logger.error({ err, companyId }, "Error en getSupplierByCompanyId");
+    throw new AppError("Error al consultar el proveedor de la empresa", 500);
   }
 };
 
@@ -88,6 +111,12 @@ export const getSuppliers = async ({
     if (filters.company_id) {
       params.push(filters.company_id);
       conditions.push(`s.company_id = $${params.length}`);
+    }
+    if (filters.category_id) {
+      params.push(filters.category_id);
+      conditions.push(
+        `EXISTS (SELECT 1 FROM public.products p WHERE p.supplier_id = s.id AND (p.category_id = $${params.length} OR p.category_id IN (SELECT id FROM public.categories WHERE parent_id = $${params.length})))`,
+      );
     }
 
     let sql = `

@@ -2,11 +2,14 @@ import * as supplierService from "../suppliers/supplierService.js";
 import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const createSupplier = asyncWrapper(async (req, res) => {
-  const newSupplier = await supplierService.createSupplierService(req.body);
+  const result = await supplierService.createSupplierService(req.body);
+  const data = result?.supplier ?? result;
+  const auth = result?.tokens ?? null;
   res.status(201).json({
     success: true,
     message: "Proveedor registrado exitosamente",
-    data: newSupplier,
+    data,
+    ...(auth ? { auth } : {}),
   });
 });
 
