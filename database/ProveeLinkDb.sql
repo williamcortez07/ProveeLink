@@ -45,6 +45,7 @@ CREATE TABLE companies (
     user_id UUID NOT NULL,
     name VARCHAR(150) NOT NULL,
     description TEXT,
+    tax_id VARCHAR(50) UNIQUE,
     tax_id VARCHAR(50) NOT NULL UNIQUE, -- Equivalente a tu campo RUC
     phone VARCHAR(20),
     email VARCHAR(150),
