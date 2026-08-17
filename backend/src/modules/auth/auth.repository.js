@@ -193,8 +193,12 @@ export const updateUserProfile = async (
 export const findRoleByName = async (name) => {
   try {
     const result = await query(
-      `SELECT id FROM public.roles WHERE name = $1 LIMIT 1;`,
-      [name],
+      `SELECT id FROM public.roles
+       WHERE LOWER(name) = LOWER($1)
+          OR LOWER(name) = LOWER($2)
+          OR LOWER(name) LIKE LOWER($3)
+       LIMIT 1;`,
+      [name, `${name}s`, `${name}%`],
     );
     return result.rows[0]?.id ?? null;
   } catch (err) {
