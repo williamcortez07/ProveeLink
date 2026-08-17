@@ -1,0 +1,562 @@
+/* ============================================================
+   GLOBALS.CSS
+   Fuente única de verdad para: paleta de colores, tipografía,
+   espaciados, radios, sombras, reset y layout de la web.
+   Los componentes (navbar, sidebar, footer, etc) importan este
+   archivo y SOLO definen lo que les es propio.
+   ============================================================ */
+
+/* ---------------------------------------------------------
+   1. DESIGN TOKENS
+   --------------------------------------------------------- */
+:root {
+  /* --- Colores de marca --- */
+  --color-primary-blue: #0f2d59;
+  --color-primary-green: #24b34b;
+  --color-primary-green-hover: #1e983e;
+  --color-accent-blue: #3b82f6;
+  --color-heart-red: #ef4444;
+
+  /* --- Alias semánticos usados por los componentes ---
+     (permiten que navbar/sidebar/footer usen nombres cortos
+     y genéricos sin duplicar valores hex) */
+  --color-primary: var(--color-primary-green);
+  --color-primary-dark: var(--color-primary-green-hover);
+  --color-primary-light: var(--tint-green);
+  --color-ink: var(--color-text-main);
+  --color-ink-soft: var(--color-text-muted);
+  --color-bg: var(--color-bg-card);
+  --color-bg-alt: var(--color-bg-canvas);
+  --color-border: var(--color-border-input);
+
+  /* --- Texto --- */
+  --color-text-main: #0f2d59;
+  --color-text-muted: #64748b;
+  --color-border-subtle: #f1f5f9;
+  --color-border-input: #e2e8f0;
+
+  /* --- Superficies --- */
+  --color-bg-canvas: #f8fafc;
+  --color-bg-card: #ffffff;
+  --color-bg-alert: #fffbeb;
+  --color-border-alert: #fde68a;
+
+  /* --- Tintes (fondos suaves para badges / iconos) --- */
+  --tint-blue: rgba(59, 130, 246, 0.1);
+  --tint-purple: rgba(147, 51, 234, 0.1);
+  --tint-pink: rgba(236, 72, 153, 0.1);
+  --tint-orange: rgba(249, 115, 22, 0.1);
+  --tint-green: rgba(36, 179, 75, 0.1);
+  --tint-yellow: rgba(245, 158, 11, 0.1);
+
+  /* --- Tipografía --- */
+  --font-system:
+    "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  --font-body: var(--font-system);
+  --font-display: var(--font-system);
+
+  /* --- Radios --- */
+  --radius-small: 6px;
+  --radius-sm: var(--radius-small);
+  --radius-medium: 12px;
+  --radius-md: var(--radius-medium);
+  --radius-large: 20px;
+  --radius-lg: var(--radius-large);
+  --radius-pill: 30px;
+
+  /* --- Sombras --- */
+  --shadow-sm: 0 2px 4px rgba(15, 45, 89, 0.02);
+  --shadow-md: 0 4px 12px rgba(15, 45, 89, 0.04);
+  --shadow-lg: 0 10px 25px rgba(15, 45, 89, 0.07);
+
+  /* --- Layout / Grid del sistema (navbar + sidebar + footer) --- */
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 0px;
+  --header-height: 64px;
+  --container-max: 1200px;
+  --gutter: 20px;
+
+  /* --- Transiciones --- */
+  --trans-fast: 0.15s ease;
+  --trans-base: 0.25s ease;
+
+  /* --- Z-index --- */
+  --z-header: 100;
+  --z-sidebar: 200;
+  --z-overlay: 150;
+}
+
+/* ---------------------------------------------------------
+   2. RESET
+   --------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-system);
+  background-color: var(--color-bg-canvas);
+  color: var(--color-text-main);
+  line-height: 1.4;
+  min-height: 100vh;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---------------------------------------------------------
+   3. LAYOUT PRINCIPAL (app shell)
+   --------------------------------------------------------- */
+.app-viewport {
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+  background-color: var(--color-bg-card);
+  min-height: 100vh;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.03);
+}
+
+.app-layout {
+  display: grid;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main"
+    "sidebar footer";
+  grid-template-columns: minmax(0, var(--sidebar-width)) 1fr;
+  grid-template-rows: var(--header-height) 1fr auto;
+  min-height: 100vh;
+  transition: grid-template-columns var(--trans-base);
+}
+
+/* En móvil el sidebar se oculta fuera de pantalla y el resto
+   ocupa todo el ancho; se abre como panel superpuesto */
+@media (max-width: 899px) {
+  .app-layout {
+    grid-template-areas:
+      "header"
+      "main"
+      "footer";
+    grid-template-columns: 1fr;
+  }
+
+  #sidebar-target {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: visible;
+    pointer-events: none;
+  }
+}
+
+.app-layout > header {
+  grid-area: header;
+}
+
+.app-layout > main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.app-layout > footer {
+  grid-area: footer;
+}
+
+/* Contenedores target de componentes dinámicos:
+   Son divs sin nombre semántico, hay que asignarles el área de grid
+   explícitamente para que el layout no se rompa. */
+#sidebar-target {
+  grid-area: sidebar;
+}
+
+#navbar-target {
+  grid-area: header;
+}
+
+#footer-target {
+  grid-area: footer;
+}
+
+/* ---------------------------------------------------------
+   4. TIPOGRAFÍA DEL SISTEMA
+   --------------------------------------------------------- */
+.heading-xl {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.heading-lg {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.heading-md {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.text-muted {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+.text-accent-link {
+  color: var(--color-primary-green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------
+   5. BUSCADOR (componente genérico reutilizable)
+   --------------------------------------------------------- */
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-pill);
+  padding: 6px 6px 6px 16px;
+  box-shadow: var(--shadow-sm);
+  margin: 15px 0;
+}
+
+.search-input-field {
+  border: none;
+  outline: none;
+  flex-grow: 1;
+  font-size: 0.95rem;
+  color: var(--color-text-main);
+  background: transparent;
+}
+
+.search-input-field::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------
+   6. BOTONES ESTÁNDAR
+   --------------------------------------------------------- */
+.btn {
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 16px;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--trans-fast),
+    transform 0.12s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-green-solid {
+  background-color: var(--color-primary-green);
+  color: #ffffff;
+}
+.btn-green-solid:hover {
+  background-color: var(--color-primary-green-hover);
+}
+
+.btn-blue-solid {
+  background-color: var(--color-primary-blue);
+  color: #ffffff;
+  width: 100%;
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-blue {
+  border: 1px solid var(--color-primary-blue);
+  color: var(--color-primary-blue);
+  background-color: transparent;
+}
+
+.btn-light-subtle {
+  background-color: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  color: var(--color-primary-blue);
+  width: 100%;
+  border-radius: var(--radius-medium);
+}
+
+/* ---------------------------------------------------------
+   7. CHIPS / FILTROS
+   --------------------------------------------------------- */
+.filter-chips-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 5px 0 15px 0;
+  scrollbar-width: none;
+}
+.filter-chips-container::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.chip-active {
+  background-color: var(--color-primary-blue);
+  color: #ffffff;
+}
+
+.chip-inactive {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-input);
+  color: var(--color-text-main);
+}
+
+/* ---------------------------------------------------------
+   8. BADGES / ICONOS
+   --------------------------------------------------------- */
+.badge-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-small);
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.icon-box-square {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-box-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------
+   9. BLOQUES / SECCIONES
+   --------------------------------------------------------- */
+.section-header-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0 12px 0;
+}
+
+.banner-callout {
+  background-color: var(--color-bg-alert);
+  border: 1px solid var(--color-border-alert);
+  border-radius: var(--radius-medium);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0;
+}
+
+/* ---------------------------------------------------------
+   10. SLIDERS / CARRUSELES
+   --------------------------------------------------------- */
+.slider-horizontal-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+}
+.slider-horizontal-container::-webkit-scrollbar {
+  display: none;
+}
+
+.card-supplier-slider {
+  min-width: 82%;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  scroll-snap-align: start;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.slider-pagination-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 12px 0 20px 0;
+}
+
+.dot-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-border-input);
+  border-radius: 50%;
+}
+
+.dot-indicator.is-active {
+  background-color: var(--color-primary-green);
+  width: 16px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------
+   11. GRILLAS DE DIRECTORIO / LISTAS
+   --------------------------------------------------------- */
+.grid-directory-categories {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 15px 0;
+}
+
+.card-category-directory {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.list-vertical-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 15px 0;
+}
+
+.card-supplier-row {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.btn-favorite-heart {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: var(--color-heart-red);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+/* ---------------------------------------------------------
+   12. ESTADOS VACÍOS
+   --------------------------------------------------------- */
+.empty-state-billboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 25px;
+  margin-top: 30px;
+}
+
+.empty-state-showcase-box {
+  background-color: var(--color-bg-card);
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.badge-lock-overlap {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: var(--color-primary-green);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.features-stacked-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 35px;
+}
+
+.feature-stacked-row {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-medium);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------------------------------------------------------
+   13. UTILIDADES DE VISIBILIDAD RESPONSIVE
+   (usadas por navbar/sidebar/footer para mostrar/ocultar
+   elementos según breakpoint, evita duplicar media queries)
+   --------------------------------------------------------- */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .hide-mobile {
+    display: initial;
+  }
+  .hide-desktop {
+    display: none;
+  }
+}

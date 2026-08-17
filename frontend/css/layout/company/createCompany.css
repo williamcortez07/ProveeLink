@@ -1,0 +1,313 @@
+/**
+ * @file createCompany.css
+ * @description Estilos específicos de la vista "Registrar Empresa".
+ *
+ * REGLA: Este archivo NO duplica variables ni estilos de globals.css.
+ * Utiliza ÚNICAMENTE las variables de diseño definidas en globals.css.
+ * Solo contiene lo que es exclusivo de esta vista.
+ */
+
+/* ─── Contenedor principal del formulario ─────────────────────────────────── */
+.create-company-wrapper {
+  padding: var(--gutter);
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+/* ─── Encabezado de la página ─────────────────────────────────────────────── */
+.create-company-header {
+  margin-bottom: 28px;
+}
+
+.create-company-header__icon-wrap {
+  width: 56px;
+  height: 56px;
+  background-color: var(--tint-green);
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-green);
+  margin-bottom: 16px;
+}
+
+.create-company-header__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 6px;
+}
+
+.create-company-header__subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* ─── Formulario ──────────────────────────────────────────────────────────── */
+.company-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Sección / grupo de campos ───────────────────────────────────────────── */
+.form-section {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-medium);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-section__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-section__title svg {
+  color: var(--color-primary-green);
+  flex-shrink: 0;
+}
+
+/* ─── Campo individual ────────────────────────────────────────────────────── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Grid de dos columnas en pantallas medianas+ */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 540px) {
+  .field-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.field-label .required-mark {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-small);
+  font-size: 0.92rem;
+  font-family: var(--font-body);
+  color: var(--color-text-main);
+  background-color: var(--color-bg-canvas);
+  transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: var(--color-primary-green);
+  box-shadow: 0 0 0 3px rgba(36, 179, 75, 0.12);
+  background-color: var(--color-bg-card);
+}
+
+.field-input.is-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.field-input::placeholder {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+textarea.field-input {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+/* ─── Mensaje de error de campo ───────────────────────────────────────────── */
+.field-error-msg {
+  font-size: 0.8rem;
+  color: #ef4444;
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.field-error-msg.is-visible {
+  display: flex;
+}
+
+/* ─── Hint (texto de ayuda debajo del campo) ──────────────────────────────── */
+.field-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* ─── Banner informativo (campos opcionales) ──────────────────────────────── */
+.form-info-banner {
+  background-color: var(--color-bg-alert);
+  border: 1px solid var(--color-border-alert);
+  border-radius: var(--radius-small);
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.form-info-banner svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #f59e0b;
+}
+
+/* ─── Pie del formulario / botón de submit ────────────────────────────────── */
+.form-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+  padding-bottom: 32px;
+}
+
+.btn-create-company {
+  width: 100%;
+  padding: 14px 20px;
+  background-color: var(--color-primary-green);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(36, 179, 75, 0.28);
+  transition:
+    background-color var(--trans-fast),
+    transform 0.12s ease,
+    box-shadow var(--trans-fast);
+}
+
+.btn-create-company:hover:not(:disabled) {
+  background-color: var(--color-primary-green-hover);
+  box-shadow: 0 6px 20px rgba(36, 179, 75, 0.36);
+}
+
+.btn-create-company:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-create-company:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ─── Estado de carga ─────────────────────────────────────────────────────── */
+.spinner-inline {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin-button 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin-button {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Screen de carga inicial (verificando sesión) ────────────────────────── */
+.page-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg-canvas);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 9999;
+}
+
+.page-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border-input);
+  border-top-color: var(--color-primary-green);
+  border-radius: 50%;
+  animation: spin-button 0.8s linear infinite;
+}
+
+.page-loading-text {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* ─── Pantalla: ya tiene empresa (acceso denegado) ────────────────────────── */
+.already-registered-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px var(--gutter);
+  max-width: 400px;
+  margin-inline: auto;
+}
+
+.already-registered-notice__icon {
+  width: 72px;
+  height: 72px;
+  background-color: var(--tint-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-green);
+  margin-bottom: 20px;
+}
+
+.already-registered-notice__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 8px;
+}
+
+.already-registered-notice__subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}

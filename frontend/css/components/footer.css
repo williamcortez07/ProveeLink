@@ -1,0 +1,89 @@
+/* ============================================================
+   FOOTER.CSS
+   Estilos exclusivos del componente Footer.
+   Variables de color/tipografía/espaciado provienen de globals.css.
+   ============================================================ */
+/* globals.css se carga antes mediante <link> en el HTML */
+
+/* ---------------------------------------------------------
+   Barra de pie de página
+   --------------------------------------------------------- */
+.site-footer {
+  background-color: var(--color-bg-card);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 16px var(--gutter);
+}
+
+.footer-copy {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------
+   Botón flotante "volver arriba"
+   Oculto por defecto; footer.js le agrega .is-visible
+   cuando el usuario ha hecho scroll hacia abajo.
+   --------------------------------------------------------- */
+.footer-back-to-top {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--color-primary-blue);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-header);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition:
+    opacity var(--trans-base),
+    transform var(--trans-base),
+    background var(--trans-fast);
+}
+
+.footer-back-to-top:hover {
+  background-color: var(--color-accent-blue);
+}
+
+.footer-back-to-top.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------
+   Tablet / Desktop ≥ 700px
+   --------------------------------------------------------- */
+@media (min-width: 700px) {
+  .footer-inner {
+    justify-content: space-between;
+  }
+
+  .footer-back-to-top {
+    right: 32px;
+    bottom: 32px;
+  }
+}
+
+@media (min-width: 900px) {
+  .app-viewport .footer-back-to-top {
+    right: calc(50% - 240px + 20px);
+  }
+}

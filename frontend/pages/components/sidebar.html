@@ -1,0 +1,119 @@
+<!-- ============================================================
+     SIDEBAR (fragmento)
+     Se inyecta dinámicamente vía sidebar.js dentro de
+     <div id="sidebar-target"></div>, ubicado en el área
+     "sidebar" del grid .app-layout.
+     ============================================================ -->
+<aside
+  class="main-sidebar"
+  id="sidebar"
+  role="navigation"
+  aria-label="Menú principal"
+>
+  <!-- Marca (visible dentro del propio sidebar) -->
+  <div class="sidebar-brand">
+    <a href="/frontend/pages/home.html" class="brand" aria-label="ProveeLink · Inicio">
+      <img src="/frontend/assets/icons/baner.png" alt="banner" class="banner" />
+      <span class="brand-name">ProveeLink</span>
+    </a>
+
+    <!-- Botón de cierre, solo visible en overlay móvil -->
+    <button
+      type="button"
+      class="sidebar-close-btn hide-desktop"
+      id="sidebarCloseBtn"
+      aria-label="Cerrar menú de navegación"
+    ></button>
+  </div>
+
+  <!-- Navegación principal -->
+  <nav class="sidebar-nav" aria-label="Secciones">
+    <ul class="sidebar-nav-list">
+      <li class="sidebar-nav-item">
+        <a
+          class="sidebar-nav-link"
+          data-nav-route="home.html"
+          href="/frontend/pages/home.html"
+        >
+          <img
+            src="/frontend/assets/icons/house-solid-full.svg"
+            alt="icon-home"
+            class="icons"
+          />
+          <span class="link-text">Inicio</span>
+        </a>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <a
+          class="sidebar-nav-link"
+          data-nav-route="category.html"
+          href="/frontend/pages/category.html"
+        >
+          <img
+            src="/frontend/assets/icons/utensils-solid-full.svg"
+            alt="icon-utensils"
+            class="icons"
+          />
+          <span class="link-text">Categorías</span>
+        </a>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <a
+          class="sidebar-nav-link"
+          data-nav-route="favorites.html"
+          href="/frontend/pages/favorites.html"
+        >
+          <img
+            src="/frontend/assets/icons/heart-solid-full.svg"
+            alt="icon-favorites"
+            class="icons"
+          />
+          <span class="link-text">Favoritos</span>
+        </a>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <a
+          class="sidebar-nav-link"
+          data-nav-route="createCompany.html"
+          href="/frontend/pages/company/createCompany.html"
+        >
+          <img
+            src="/frontend/assets/icons/pencil-solid-full.svg"
+            alt="icon-company"
+            class="icons"
+          />
+          <span class="link-text">Publicar mi negocio</span>
+        </a>
+      </li>
+
+      <li class="sidebar-nav-item">
+        <a
+          class="sidebar-nav-link"
+          data-nav-route="profile.html"
+          href="/frontend/pages/profile.html"
+        >
+          <img
+            src="/frontend/assets/icons/user-solid-full.svg"
+            alt="icon-profile"
+            class="icons"
+          />
+          <span class="link-text">Mi Perfil</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Pie del sidebar: acceso a cuenta -->
+  <div class="sidebar-footer">
+    <a href="/frontend/index.html" class="sidebar-account-link">
+      <span class="sidebar-account-avatar" aria-hidden="true">U</span>
+      <span class="sidebar-account-name">Cerrar sesión</span>
+    </a>
+  </div>
+</aside>
+
+<!-- Backdrop overlay para cerrar en móvil -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>

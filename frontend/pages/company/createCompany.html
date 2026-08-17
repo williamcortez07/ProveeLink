@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registrar mi empresa · ProveeLink</title>
+    <meta
+      name="description"
+      content="Registra tu empresa en ProveeLink y conecta con miles de compradores y proveedores."
+    />
+    <link rel="stylesheet" href="../../css/base/globals.css" />
+    <link rel="stylesheet" href="../../css/components/sidebar.css" />
+    <link rel="stylesheet" href="../../css/components/navbar.css" />
+    <link rel="stylesheet" href="../../css/components/footer.css" />
+    <link rel="stylesheet" href="../../css/layout/company/createCompany.css" />
+  </head>
+
+  <body>
+    <div
+      id="page-loading-overlay"
+      class="page-loading-overlay"
+      aria-live="polite"
+      aria-label="Verificando acceso…"
+    >
+      <div class="page-loading-spinner" role="status"></div>
+      <p class="page-loading-text">Verificando tu cuenta…</p>
+    </div>
+    <div class="app-layout">
+      <div id="sidebar-target"></div>
+      <div id="navbar-target"></div>
+
+      <main>
+        <div
+          id="already-registered-block"
+          class="already-registered-notice"
+          style="display: none"
+          aria-live="polite"
+        >
+          <div class="already-registered-notice__icon" aria-hidden="true">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h1 class="already-registered-notice__title">
+            ¡Tu empresa ya está registrada!
+          </h1>
+          <p class="already-registered-notice__subtitle">
+            Ya tienes una empresa vinculada a tu cuenta. No es necesario
+            registrar una nueva.
+          </p>
+          <button
+            id="btn-go-to-company"
+            class="btn btn-green-solid"
+            type="button"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            Ir a Mi Empresa
+          </button>
+        </div>
+        <div
+          id="create-company-main-content"
+          class="create-company-wrapper"
+          style="display: none"
+        >
+          <header class="create-company-header">
+            <div class="create-company-header__icon-wrap" aria-hidden="true">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
+            </div>
+            <h1 class="create-company-header__title">Registra tu empresa</h1>
+            <p class="create-company-header__subtitle">
+              Completa la información de tu empresa para comenzar a conectar con
+              proveedores en ProveeLink.
+            </p>
+          </header>
+          <form
+            id="create-company-form"
+            class="company-form"
+            novalidate
+            aria-label="Formulario de registro de empresa"
+          >
+            <section class="form-section" aria-labelledby="section-main-title">
+              <h2 class="form-section__title" id="section-main-title">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <rect x="2" y="7" width="20" height="14" rx="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+                Información Principal
+              </h2>
+              <div class="field-group">
+                <label class="field-label" for="company-name">
+                  Nombre de la empresa
+                  <span class="required-mark" aria-hidden="true">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="company-name"
+                  name="name"
+                  class="field-input"
+                  placeholder="Ej. Distribuidora El Sol S.A."
+                  maxlength="100"
+                  autocomplete="organization"
+                  required
+                  aria-required="true"
+                  aria-describedby="error-company-name"
+                />
+                <span
+                  id="error-company-name"
+                  class="field-error-msg"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </span>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="company-description">
+                  Descripción de la empresa
+                </label>
+                <textarea
+                  id="company-description"
+                  name="description"
+                  class="field-input"
+                  placeholder="Describe brevemente la actividad o giro de tu empresa…"
+                  rows="3"
+                  aria-describedby="error-company-description hint-company-description"
+                ></textarea>
+                <span id="hint-company-description" class="field-hint"
+                  >Opcional — máximo 500 caracteres.</span
+                >
+                <span
+                  id="error-company-description"
+                  class="field-error-msg"
+                  role="alert"
+                  aria-live="polite"
+                ></span>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="company-tax-id">
+                  ID Fiscal (RUC / NIT / RFC)
+                </label>
+                <input
+                  type="text"
+                  id="company-tax-id"
+                  name="tax_id"
+                  class="field-input"
+                  placeholder="Ej. J-40123456-7"
+                  aria-describedby="error-company-tax-id hint-company-tax-id"
+                />
+                <span id="hint-company-tax-id" class="field-hint"
+                  >Opcional — número de identificación fiscal de tu país.</span
+                >
+                <span
+                  id="error-company-tax-id"
+                  class="field-error-msg"
+                  role="alert"
+                  aria-live="polite"
+                ></span>
+              </div>
+            </section>
+            <section
+              class="form-section"
+              aria-labelledby="section-contact-title"
+            >
+              <h2 class="form-section__title" id="section-contact-title">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 9.85 19.79 19.79 0 0 1 1.6 1.21 2 2 0 0 1 3.59 0h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 7.91a16 16 0 0 0 5.91 5.91l.77-.77a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.46 15"
+                  />
+                </svg>
+                Datos de Contacto
+              </h2>
+
+              <div class="field-row">
+                <div class="field-group">
+                  <label class="field-label" for="company-phone">
+                    Teléfono
+                    <span class="required-mark" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="company-phone"
+                    name="phone"
+                    class="field-input"
+                    placeholder="+50422334455"
+                    autocomplete="tel"
+                    required
+                    aria-required="true"
+                    aria-describedby="error-company-phone"
+                  />
+                  <span
+                    id="error-company-phone"
+                    class="field-error-msg"
+                    role="alert"
+                    aria-live="polite"
+                  ></span>
+                </div>
+                <div class="field-group">
+                  <label class="field-label" for="company-email">
+                    Correo electrónico
+                    <span class="required-mark" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="company-email"
+                    name="email"
+                    class="field-input"
+                    placeholder="contacto@miempresa.com"
+                    autocomplete="email"
+                    required
+                    aria-required="true"
+                    aria-describedby="error-company-email"
+                  />
+                  <span
+                    id="error-company-email"
+                    class="field-error-msg"
+                    role="alert"
+                    aria-live="polite"
+                  ></span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="company-website">
+                  Sitio web
+                </label>
+                <input
+                  type="url"
+                  id="company-website"
+                  name="website_url"
+                  class="field-input"
+                  placeholder="https://www.miempresa.com"
+                  autocomplete="url"
+                  aria-describedby="error-company-website"
+                />
+                <span
+                  id="error-company-website"
+                  class="field-error-msg"
+                  role="alert"
+                  aria-live="polite"
+                ></span>
+              </div>
+            </section>
+            <section
+              class="form-section"
+              aria-labelledby="section-location-title"
+            >
+              <h2 class="form-section__title" id="section-location-title">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                Ubicación
+              </h2>
+              <div class="field-group">
+                <label class="field-label" for="company-address">
+                  Dirección
+                  <span class="required-mark" aria-hidden="true">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="company-address"
+                  name="address"
+                  class="field-input"
+                  placeholder="Ej. Colonia Palmira, Edificio Torre Empresarial, Piso 3"
+                  autocomplete="street-address"
+                  required
+                  aria-required="true"
+                  aria-describedby="error-company-address"
+                />
+                <span
+                  id="error-company-address"
+                  class="field-error-msg"
+                  role="alert"
+                  aria-live="polite"
+                ></span>
+              </div>
+
+              <div class="field-row">
+                <div class="field-group">
+                  <label class="field-label" for="company-state">
+                    Estado / Provincia / Municipio
+                    <span class="required-mark" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="company-state"
+                    name="state_province"
+                    class="field-input"
+                    placeholder="Ej. Francisco Morazán"
+                    autocomplete="address-level1"
+                    required
+                    aria-required="true"
+                    aria-describedby="error-company-state"
+                  />
+                  <span
+                    id="error-company-state"
+                    class="field-error-msg"
+                    role="alert"
+                    aria-live="polite"
+                  ></span>
+                </div>
+                <div class="field-group">
+                  <label class="field-label" for="company-city">
+                    Ciudad
+                    <span class="required-mark" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="company-city"
+                    name="city"
+                    class="field-input"
+                    placeholder="Ej. Tegucigalpa"
+                    autocomplete="address-level2"
+                    required
+                    aria-required="true"
+                    aria-describedby="error-company-city"
+                  />
+                  <span
+                    id="error-company-city"
+                    class="field-error-msg"
+                    role="alert"
+                    aria-live="polite"
+                  ></span>
+                </div>
+              </div>
+            </section>
+            <section class="form-section" aria-labelledby="section-brand-title">
+              <div class="form-info-banner">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                  />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                Los campos de esta sección son opcionales. Puedes completarlos
+                más tarde desde el panel de tu empresa.
+              </div>
+
+              <h2 class="form-section__title" id="section-brand-title">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                Imagen y Marca
+              </h2>
+              <div class="field-group">
+                <label class="field-label" for="company-logo">
+                  URL del logotipo
+                </label>
+                <input
+                  type="url"
+                  id="company-logo"
+                  name="logo_url"
+                  class="field-input"
+                  placeholder="https://storage.ejemplo.com/mi-logo.png"
+                  aria-describedby="error-company-logo hint-company-logo"
+                />
+                <span id="hint-company-logo" class="field-hint"
+                  >URL directa a la imagen del logo (JPG, PNG, WebP).</span
+                >
+                <span
+                  id="error-company-logo"
+                  class="field-error-msg"
+                  role="alert"
+                  aria-live="polite"
+                ></span>
+              </div>
+            </section>
+            <div class="form-footer">
+              <button
+                type="submit"
+                id="btn-create-company"
+                class="btn-create-company"
+                aria-label="Registrar empresa"
+              >
+                <span
+                  id="btn-create-company-icon"
+                  style="display: flex; align-items: center"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </span>
+                <span
+                  id="btn-create-company-spinner"
+                  class="spinner-inline"
+                  style="display: none"
+                  aria-hidden="true"
+                ></span>
+
+                <span id="btn-create-company-text">Registrar empresa</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+
+      <div id="footer-target"></div>
+    </div>
+    <script type="module" src="../../js/utils/sidebar.js"></script>
+    <script type="module" src="../../js/utils/navbar.js"></script>
+    <script type="module" src="../../js/utils/footer.js"></script>
+    <script type="module" src="../../js/company/createCompany.js"></script>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Empresa · ProveeLink</title>
+    <link rel="stylesheet" href="/css/base/globals.css" />
+    <link rel="stylesheet" href="/css/components/sidebar.css" />
+    <link rel="stylesheet" href="/css/components/navbar.css" />
+    <link rel="stylesheet" href="/css/components/footer.css" />
+  </head>
+  <body>
+
+    <div class="app-layout">
+      <div id="sidebar-target"></div>
+      <div id="navbar-target"></div>
+
+      <main>
+        <div class="section-inner" style="padding-block: 32px;">
+          <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:16px; color: var(--color-ink);">Mi empresa</h1>
+          <div id="favoritesGrid" aria-live="polite">
+           <h1>Estas viedo el perfil de la empresa:(nombre de la empresa)</h1>
+    <h1>foto de portada o perfil</h1>
+    <h2>Nombre:</h2>
+    <h2>descripcion:</h2>
+    <h2>horario de atencion:</h2>
+    <h2>servicios</h2>
+    <h2>valoracion:</h2>
+    <h3>verificaado</h3>
+          </div>
+        </div>
+      </main>
+
+      <div id="footer-target"></div>
+    </div>
+  <script type="module" src="/js/utils/sidebar.js"></script>
+    <script type="module" src="/js/utils/navbar.js"></script>
+    <script type="module" src="/js/utils/footer.js"></script>
+  </body>
+</html>

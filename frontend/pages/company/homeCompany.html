@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Empresa · ProveeLink</title>
+    <meta name="description" content="Panel de gestión de tu empresa en ProveeLink. Accede a tus proveedores y administra tu información." />
+
+    <!-- Design System Global -->
+    <link rel="stylesheet" href="../../css/base/globals.css" />
+
+    <!-- Componentes de layout -->
+    <link rel="stylesheet" href="../../css/components/sidebar.css" />
+    <link rel="stylesheet" href="../../css/components/navbar.css" />
+    <link rel="stylesheet" href="../../css/components/footer.css" />
+
+    <!-- Estilos específicos de esta vista -->
+    <link rel="stylesheet" href="../../css/layout/company/company.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <div id="sidebar-target"></div>
+      <div id="navbar-target"></div>
+
+      <main>
+        <div class="section-inner" style="padding-block: 32px;">
+          <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:16px; color: var(--color-ink);">
+            Mi empresa
+          </h1>
+          <div id="companyContent" aria-live="polite">
+            <!-- Los datos de la empresa se renderizan aquí por company.js -->
+          </div>
+        </div>
+      </main>
+
+      <div id="footer-target"></div>
+    </div>
+
+    <!-- Scripts de layout -->
+    <script type="module" src="../../js/utils/sidebar.js"></script>
+    <script type="module" src="../../js/utils/navbar.js"></script>
+    <script type="module" src="../../js/utils/footer.js"></script>
+
+    <!-- Módulo principal de esta vista -->
+    <script type="module" src="../../js/company/company.js"></script>
+  </body>
+</html>
