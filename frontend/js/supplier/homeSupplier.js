@@ -6,13 +6,14 @@
  *  1. Verifica autenticación y guard de rol. Obtiene la empresa y el perfil de proveedor del usuario.
  *  2. Si no posee perfil de proveedor, redirige a /pages/supplier/createSupplier.html.
  *  3. Muestra métricas clave del proveedor (Total productos, Activos, Agotados/Inactivos).
- *  4. Carga y renderiza el catálogo de productos pertenientes ÚNICAMENTE al proveedor autenticado.
- *  5. Permite crear, editar, cambiar estado, gestionar imágenes y eliminar productos.
+ *  4. Carga y renderiza el catálogo de productos pertenecientes ÚNICAMENTE al proveedor autenticado.
+ *  5. Permite crear, editar, cambiar estado, gestionar múltiples imágenes (Supabase Storage) y eliminar productos.
  */
 
 import { TokenManager, homeApi } from "../services/api.js";
 import { companyService } from "../services/companyService.js";
 import { supplierService } from "../services/supplierService.js";
+import { uploadMultipleProductImages } from "../services/storageService.js";
 import { NotificationManager } from "../services/notificationService.js";
 import { Router } from "../services/routes.js";
 
@@ -25,6 +26,7 @@ const state = {
   products: [],
   filteredProducts: [],
   activeProductId: null,
+  selectedImageFiles: [],
   isSubmitting: false,
 };
 
@@ -51,6 +53,31 @@ function buildStars(rating) {
   const rounded = Math.round(parseFloat(rating) || 0);
   return "★".repeat(Math.min(rounded, 5)) + "☆".repeat(Math.max(0, 5 - rounded));
 }
+
+function starsToBadge(rating) {
+  return rating > 0 ? `${rating.toFixed(1)} ${buildStars(rating)}` : "Sin calificaciones";
+}
+
+/** Mapea los status de la DB a etiquetas amigables en español */
+function statusLabel(status) {
+  const labels = {
+    active:       "Activo",
+    inactive:     "Inactivo",
+    out_of_stock: "Agotado",
+  };
+  return labels[status] ?? escapeHtml(status);
+}
+
+/** Clase CSS para el badge según el status de la DB */
+function statusBadgeClass(status) {
+  const classes = {
+    active:       "badge-active",
+    inactive:     "badge-inactive",
+    out_of_stock: "badge-out_of_stock",
+  };
+  return classes[status] ?? "badge-inactive";
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH & ACCESS GUARD
@@ -100,13 +127,12 @@ function renderHeroAndStats() {
   const container = document.getElementById("supplier-hero-container");
   if (!container || !state.supplier || !state.company) return;
 
-  const { company } = state;
-  const { supplier } = state;
+  const { company, supplier } = state;
   const rating = parseFloat(supplier.average_rating) || 0;
 
   const totalProds = state.products.length;
-  const activeProds = state.products.filter((p) => p.status === "activo" || p.status === "disponible").length;
-  const outOfStockProds = state.products.filter((p) => p.status === "agotado" || p.status === "no disponible").length;
+  const activeProds = state.products.filter((p) => p.status === "active").length;
+  const outOfStockProds = state.products.filter((p) => p.status === "out_of_stock" || p.status === "inactive").length;
 
   container.innerHTML = `
     <div class="supplier-hero-card">
@@ -149,10 +175,6 @@ function renderHeroAndStats() {
   `;
 }
 
-function starsToBadge(rating) {
-  return rating > 0 ? `${rating.toFixed(1)} ${buildStars(rating)}` : "Sin calificaciones";
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // CATEGORIES & FILTERS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -190,14 +212,21 @@ async function loadProducts() {
 
   container.innerHTML = `
     <div style="text-align: center; padding: 48px 16px;">
-      <div class="spinner-inline" style="width: 32px; height: 32px; border-width: 3px; margin-bottom: 12px;"></div>
+      <div class="spinner-inline" style="width: 32px; height: 32px; border-width: 3px; border-top-color: #6366f1; margin-bottom: 12px;"></div>
       <p style="color: #64748b; font-size: 0.9rem;">Cargando tu catálogo de productos...</p>
     </div>
   `;
 
   try {
-    const res = await homeApi.getProductsBySupplier(state.supplier.id);
+    // Usa /products/mine — el backend deriva supplier_id del JWT, no del cliente
+    const res = await homeApi.getMyProducts();
     state.products = res?.data ?? [];
+
+    // Si el backend retorna el supplier_id resuelto, actualizar estado
+    if (res?.supplier_id && state.supplier) {
+      state.supplier.id = res.supplier_id;
+    }
+
     applyFilters();
     renderHeroAndStats();
   } catch (err) {
@@ -272,8 +301,9 @@ function renderCatalog() {
       ${state.filteredProducts
         .map((p) => {
           const categoryName = categoryMap.get(p.category_id) || p.category_name || "Producto";
-          const statusClass = `badge-${(p.status || "activo").replace(/\s+/g, "_")}`;
-          const imgUrl = p.primary_image_url || "/assets/images/placeholder-product.jpg";
+          const badgeClass = statusBadgeClass(p.status);
+          const badgeText = statusLabel(p.status);
+          const imgUrl = p.primary_image_url || p.image_url || "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400&q=80";
 
           return `
             <article class="product-card">
@@ -284,15 +314,15 @@ function renderCatalog() {
                   class="product-card-img"
                   onerror="this.src='https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400&q=80'"
                 />
-                <span class="product-card-badge ${statusClass}">
-                  ${escapeHtml(p.status || "activo")}
+                <span class="product-card-badge ${badgeClass}">
+                  ${badgeText}
                 </span>
               </div>
               <div class="product-card-body">
                 <div class="product-category-tag">${escapeHtml(categoryName)}</div>
                 <h3 class="product-card-title">${escapeHtml(p.name)}</h3>
                 <p class="product-card-desc">${escapeHtml(p.description || "Sin descripción.")}</p>
-                
+
                 <div class="product-meta-row">
                   <div>
                     <span class="product-price">${formatPrice(p.price, p.currency)}</span>
@@ -322,7 +352,7 @@ function renderCatalog() {
     </div>
   `;
 
-  // Asignar listeners a los botones de acción
+  // Listeners
   container.querySelectorAll(".btn-edit-prod").forEach((btn) => {
     btn.addEventListener("click", () => openEditProductModal(btn.dataset.id));
   });
@@ -370,12 +400,17 @@ function initModalEvents() {
   });
 }
 
+function clearFieldErrors() {
+  document.querySelectorAll(".field-error-msg").forEach((el) => (el.textContent = ""));
+}
+
 // ── PRODUCT CREATE / EDIT MODAL ──────────────────────────────────────────────
 
 function openAddProductModal() {
   const form = document.getElementById("productForm");
   if (!form) return;
 
+  clearFieldErrors();
   form.reset();
   document.getElementById("product-form-id").value = "";
   document.getElementById("productModalTitle").textContent = "Publicar Nuevo Producto";
@@ -389,6 +424,7 @@ function openEditProductModal(productId) {
   const product = state.products.find((p) => p.id === productId);
   if (!product) return;
 
+  clearFieldErrors();
   document.getElementById("product-form-id").value = product.id;
   document.getElementById("product-form-name").value = product.name || "";
   document.getElementById("product-form-category").value = product.category_id || "";
@@ -411,39 +447,143 @@ async function handleProductFormSubmit(e) {
   e.preventDefault();
   if (state.isSubmitting) return;
 
+  clearFieldErrors();
+
   const productId = document.getElementById("product-form-id").value;
   const isEditing = Boolean(productId);
 
-  const payload = {
-    supplier_id: state.supplier.id,
-    category_id: document.getElementById("product-form-category").value,
-    name: document.getElementById("product-form-name").value.trim(),
-    brand: document.getElementById("product-form-brand").value.trim(),
-    price: parseFloat(document.getElementById("product-form-price").value),
-    currency: document.getElementById("product-form-currency").value,
-    stock: parseFloat(document.getElementById("product-form-stock").value),
-    unit_of_measure: document.getElementById("product-form-unit").value.trim(),
-    model: document.getElementById("product-form-model").value.trim() || undefined,
-    description: document.getElementById("product-form-desc").value.trim(),
-  };
+  const name = document.getElementById("product-form-name").value.trim();
+  const categoryId = document.getElementById("product-form-category").value;
+  const brand = document.getElementById("product-form-brand").value.trim();
+  const priceVal = parseFloat(document.getElementById("product-form-price").value);
+  const currency = document.getElementById("product-form-currency").value;
+  const stockVal = parseInt(document.getElementById("product-form-stock").value, 10);
+  const unitOfMeasure = document.getElementById("product-form-unit").value.trim();
+  const model = document.getElementById("product-form-model").value.trim();
+  const description = document.getElementById("product-form-desc").value.trim();
+  const imageFileInput = document.getElementById("product-form-image");
 
-  if (!isEditing) {
-    const imageUrl = document.getElementById("product-form-image").value.trim();
-    if (imageUrl) payload.image_url = imageUrl;
+  // Validaciones del lado del cliente antes de enviar
+  let isValid = true;
+  if (!name || name.length < 2 || name.length > 150) {
+    document.getElementById("err-product-name").textContent = "El nombre debe tener entre 2 y 150 caracteres.";
+    isValid = false;
+  }
+  if (!categoryId) {
+    document.getElementById("err-product-category").textContent = "Selecciona una categoría válida.";
+    isValid = false;
+  }
+  if (!brand || brand.length < 2 || brand.length > 150) {
+    document.getElementById("err-product-brand").textContent = "La marca debe tener entre 2 y 150 caracteres.";
+    isValid = false;
+  }
+  if (isNaN(priceVal) || priceVal <= 0) {
+    document.getElementById("err-product-price").textContent = "El precio debe ser un número positivo mayor que 0.";
+    isValid = false;
+  }
+  if (isNaN(stockVal) || stockVal < 0) {
+    document.getElementById("err-product-stock").textContent = "El stock debe ser un entero de 0 o más.";
+    isValid = false;
+  }
+  if (!unitOfMeasure || unitOfMeasure.length < 1 || unitOfMeasure.length > 20) {
+    document.getElementById("err-product-unit").textContent = "La unidad de medida es requerida (máx 20 car.).";
+    isValid = false;
+  }
+  if (!description || description.length < 2 || description.length > 500) {
+    document.getElementById("err-product-desc").textContent = "La descripción debe tener entre 2 y 500 caracteres.";
+    isValid = false;
   }
 
+  if (!isValid) return;
+
   const saveBtn = document.getElementById("btn-save-product");
+  const saveText = document.getElementById("btn-save-text");
   saveBtn.disabled = true;
+  saveText.textContent = isEditing ? "Guardando..." : "Publicando producto...";
   state.isSubmitting = true;
 
   try {
+    // Siempre usar user.id como ownerId para Storage (coincidir con auth.uid())
+    const ownerId = state.user?.id;
+    let uploadedUrls = [];
+    let uploadErrors = [];
+
+    // 1. Subir imágenes si se seleccionaron archivos (secuencial, con progreso)
+    if (!isEditing && imageFileInput && imageFileInput.files.length > 0) {
+      const files = Array.from(imageFileInput.files);
+      saveText.textContent = `Subiendo 0 de ${files.length} imagen(es)...`;
+
+      const result = await uploadMultipleProductImages(
+        files,
+        ownerId,
+        (uploaded, total) => {
+          saveText.textContent = `Subiendo ${uploaded} de ${total} imagen(es)...`;
+        },
+      );
+
+      uploadedUrls = result.urls;
+      uploadErrors = result.errors;
+
+      if (uploadErrors.length > 0 && uploadedUrls.length === 0) {
+        // Todas fallaron: abortar
+        NotificationManager.error(
+          `No se pudo subir ninguna imagen: ${uploadErrors[0].error}`,
+        );
+        saveBtn.disabled = false;
+        saveText.textContent = "Publicar Producto";
+        state.isSubmitting = false;
+        return;
+      }
+    }
+
+    // 2. Construir payload del producto
+    const payload = {
+      supplier_id: state.supplier.id,
+      category_id: categoryId,
+      name,
+      brand,
+      price: priceVal,
+      currency,
+      stock: stockVal,
+      unit_of_measure: unitOfMeasure,
+      model: model || undefined,
+      description,
+      image_url: uploadedUrls.length > 0 ? uploadedUrls[0] : undefined,
+    };
+
     if (isEditing) {
-      delete payload.supplier_id; // No cambiar de proveedor al editar
+      delete payload.supplier_id;
+      delete payload.image_url;
       await homeApi.updateProduct(productId, payload);
       NotificationManager.success("Producto actualizado correctamente.");
     } else {
-      await homeApi.addProduct(payload);
-      NotificationManager.success("¡Producto publicado exitosamente!");
+      // Crear producto (la primera imagen ya se asocia como primaria via image_url)
+      const res = await homeApi.addProduct(payload);
+      const newProduct = res?.data;
+
+      // Si hay más imágenes adicionales seleccionadas, subirlas y vincularlas
+      if (newProduct?.id && uploadedUrls.length > 1) {
+        for (let i = 1; i < uploadedUrls.length; i++) {
+          try {
+            await homeApi.addProductImage(newProduct.id, {
+              image_url: uploadedUrls[i],
+              is_primary: false,
+              display_order: i,
+            });
+          } catch (extraImgErr) {
+            console.warn("[homeSupplier.js] Error asociando imagen secundaria:", extraImgErr);
+          }
+        }
+      }
+
+      // Notificar si alguna imagen secundaria falló
+      if (uploadErrors.length > 0) {
+        NotificationManager.success(
+          `¡Producto publicado! ${uploadErrors.length} imagen(es) no se pudieron subir.`,
+        );
+      } else {
+        NotificationManager.success("¡Producto publicado exitosamente!");
+      }
     }
 
     closeModal("productModal");
@@ -453,6 +593,7 @@ async function handleProductFormSubmit(e) {
     NotificationManager.error(err.message || "No se pudo guardar el producto.");
   } finally {
     saveBtn.disabled = false;
+    saveText.textContent = isEditing ? "Guardar Cambios" : "Publicar Producto";
     state.isSubmitting = false;
   }
 }
@@ -461,11 +602,59 @@ async function handleProductFormSubmit(e) {
 
 async function openImagesModal(productId) {
   state.activeProductId = productId;
+  state.selectedImageFiles = [];
   document.getElementById("images-product-id").value = productId;
-  document.getElementById("addImageForm").reset();
+
+  const form = document.getElementById("addImageForm");
+  if (form) form.reset();
+
+  const preview = document.getElementById("image-upload-preview");
+  if (preview) {
+    preview.style.display = "none";
+    preview.innerHTML = "";
+  }
+
+  const btnAdd = document.getElementById("btn-add-image");
+  if (btnAdd) btnAdd.disabled = true;
 
   openModal("imagesModal");
   await renderProductImagesList(productId);
+}
+
+function initImageFileInput() {
+  const fileInput = document.getElementById("new-image-file");
+  const preview = document.getElementById("image-upload-preview");
+  const btnAdd = document.getElementById("btn-add-image");
+
+  if (!fileInput) return;
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files && fileInput.files.length > 0) {
+      state.selectedImageFiles = Array.from(fileInput.files);
+
+      if (preview) {
+        preview.innerHTML = state.selectedImageFiles
+          .map(
+            (file) => `
+            <div style="display:flex; align-items:center; gap:8px; background:#ffffff; padding:6px 10px; border-radius:6px; border:1px solid #e2e8f0; max-width:200px;">
+              <img src="${URL.createObjectURL(file)}" alt="preview" style="width:36px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;" />
+              <span style="font-size:0.78rem; color:#334155; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(file.name)}</span>
+            </div>
+          `,
+          )
+          .join("");
+        preview.style.display = "flex";
+      }
+      if (btnAdd) btnAdd.disabled = false;
+    } else {
+      state.selectedImageFiles = [];
+      if (preview) {
+        preview.style.display = "none";
+        preview.innerHTML = "";
+      }
+      if (btnAdd) btnAdd.disabled = true;
+    }
+  });
 }
 
 async function renderProductImagesList(productId) {
@@ -513,28 +702,73 @@ async function renderProductImagesList(productId) {
 async function handleAddImageSubmit(e) {
   e.preventDefault();
   const productId = state.activeProductId;
-  const imageUrl = document.getElementById("new-image-url").value.trim();
-  const isPrimary = document.getElementById("new-image-primary").checked;
+  const files = state.selectedImageFiles;
+  const isPrimaryChecked = document.getElementById("new-image-primary")?.checked ?? false;
 
-  if (!imageUrl || !productId) return;
+  if (!files || files.length === 0 || !productId) {
+    NotificationManager.error("Selecciona al menos una imagen antes de subir.");
+    return;
+  }
 
   const btn = document.getElementById("btn-add-image");
   btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-inline"></span> Subiendo ${files.length} fotos...`;
 
   try {
-    await homeApi.addProductImage(productId, {
-      image_url: imageUrl,
-      is_primary: isPrimary,
-    });
-    NotificationManager.success("Imagen agregada correctamente.");
+    // Siempre usar user.id para Storage (coincidir con auth.uid())
+    const ownerId = state.user?.id;
+
+    btn.innerHTML = `<span class="spinner-inline"></span> Subiendo 0 de ${files.length}...`;
+
+    // 1. Subir imágenes secuencialmente con progreso
+    const { urls: publicUrls, errors: uploadErrors } = await uploadMultipleProductImages(
+      files,
+      ownerId,
+      (uploaded, total) => {
+        btn.innerHTML = `<span class="spinner-inline"></span> Subiendo ${uploaded} de ${total}...`;
+      },
+    );
+
+    if (publicUrls.length === 0) {
+      NotificationManager.error(
+        `No se pudo subir ninguna imagen. ${uploadErrors[0]?.error || "Verifica el bucket de Supabase."}`,
+      );
+      return;
+    }
+
+    // 2. Asociar cada URL subida a la base de datos
+    for (let i = 0; i < publicUrls.length; i++) {
+      const url = publicUrls[i];
+      const isPrimary = i === 0 && isPrimaryChecked;
+      await homeApi.addProductImage(productId, {
+        image_url: url,
+        is_primary: isPrimary,
+        display_order: i,
+      });
+    }
+
+    const successMsg = uploadErrors.length > 0
+      ? `${publicUrls.length} imagen(es) agregada(s). ${uploadErrors.length} fallaron.`
+      : `¡${publicUrls.length} imagen(es) agregada(s) a la galería correctamente!`;
+    NotificationManager.success(successMsg);
+
+    // Resetear form y preview
     document.getElementById("addImageForm").reset();
+    state.selectedImageFiles = [];
+    const preview = document.getElementById("image-upload-preview");
+    if (preview) {
+      preview.style.display = "none";
+      preview.innerHTML = "";
+    }
+
     await renderProductImagesList(productId);
-    await loadProducts(); // refrescar tarjeta si cambió la primaria
+    await loadProducts();
   } catch (err) {
-    console.error("[homeSupplier.js] Error al agregar imagen:", err);
-    NotificationManager.error(err.message || "No se pudo agregar la imagen.");
+    console.error("[homeSupplier.js] Error al agregar imágenes:", err);
+    NotificationManager.error(err.message || "No se pudieron agregar las imágenes.");
   } finally {
     btn.disabled = false;
+    btn.textContent = "+ Agregar Imágenes";
   }
 }
 
@@ -598,6 +832,7 @@ async function init() {
 
   // Inicializar listeners de interfaz
   initModalEvents();
+  initImageFileInput();
 
   document.getElementById("btn-open-add-product")?.addEventListener("click", openAddProductModal);
   document.getElementById("productForm")?.addEventListener("submit", handleProductFormSubmit);
@@ -607,8 +842,6 @@ async function init() {
   document.getElementById("catalog-search-input")?.addEventListener("input", applyFilters);
   document.getElementById("filter-category-select")?.addEventListener("change", applyFilters);
   document.getElementById("filter-status-select")?.addEventListener("change", applyFilters);
-
-  // Cargar datos
   await loadCategories();
   await loadProducts();
 

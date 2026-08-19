@@ -421,6 +421,32 @@ router.post(
   validateRequest(createProductSchema),
   ProductController.createProduct,
 );
+
+/**
+ * @openapi
+ * /products/mine:
+ *   get:
+ *     summary: Obtiene los productos del proveedor autenticado
+ *     description: >
+ *       Retorna únicamente los productos que pertenecen al proveedor
+ *       cuyo perfil está asociado al usuario autenticado (derivado del JWT).
+ *       No acepta ni confía en un supplier_id suministrado por el cliente.
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Catálogo del proveedor recuperado exitosamente.
+ *       401:
+ *         description: No autenticado.
+ *       404:
+ *         description: El usuario no tiene perfil de proveedor.
+ */
+router.get(
+  "/mine",
+  ProductController.getMyProducts,
+);
+
 router.get(
   "/",
   validateRequest(getProductsSchema),

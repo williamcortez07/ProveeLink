@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="../../css/components/navbar.css" />
     <link rel="stylesheet" href="../../css/components/footer.css" />
     <link rel="stylesheet" href="../../css/layout/supplier/supplier.css" />
+    <link rel="stylesheet" href="../../css/layout/supplier/homeSupplier.css" />
   </head>
   <body>
     <!-- Pantalla de Carga Inicial -->
@@ -61,10 +62,9 @@
 
               <select id="filter-status-select" class="form-select-sm">
                 <option value="">Todos los estados</option>
-                <option value="activo">Activo</option>
-                <option value="disponible">Disponible</option>
-                <option value="agotado">Agotado</option>
-                <option value="no disponible">No Disponible</option>
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+                <option value="out_of_stock">Agotado</option>
               </select>
             </div>
 
@@ -154,8 +154,9 @@
               </div>
 
               <div class="form-group" id="group-initial-image">
-                <label for="product-form-image" class="form-label">URL de Imagen Principal (opcional)</label>
-                <input type="url" id="product-form-image" class="form-control" placeholder="https://ejemplo.com/imagen.jpg" />
+                <label for="product-form-image" class="form-label">Imágenes del Producto (opcional, puedes seleccionar varias)</label>
+                <input type="file" id="product-form-image" class="form-control-file" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+                <span class="form-hint">JPG, PNG, WEBP o GIF · máx 5 MB por archivo</span>
               </div>
 
               <div class="form-group form-group-full">
@@ -195,11 +196,23 @@
 
           <h4 style="font-size: 0.95rem; margin: 0 0 12px 0; color: #334155;">Agregar Nueva Imagen</h4>
           <form id="addImageForm" style="display:flex; flex-direction:column; gap:12px;">
-            <input type="url" id="new-image-url" class="form-control" placeholder="https://ejemplo.com/imagen.jpg" required />
+            <div class="file-upload-zone" id="image-upload-zone">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#94a3b8;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p style="margin:8px 0 4px; font-weight:600; color:#475569; font-size:0.9rem;">Selecciona o arrastra una o varias imágenes</p>
+              <p style="margin:0; font-size:0.78rem; color:#94a3b8;">JPG, PNG, WEBP o GIF · máx 5 MB cada una</p>
+              <input type="file" id="new-image-file" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" />
+            </div>
+            <div id="image-upload-preview" style="display:none; flex-wrap:wrap; gap:10px; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+              <!-- Miniaturas cargadas dinámicamente -->
+            </div>
             <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:#475569; cursor:pointer;">
               <input type="checkbox" id="new-image-primary" /> Establecer como imagen principal
             </label>
-            <button type="submit" id="btn-add-image" class="btn btn-primary" style="align-self: flex-start;">
+            <button type="submit" id="btn-add-image" class="btn btn-primary" style="align-self: flex-start;" disabled>
               + Agregar Imagen
             </button>
           </form>
