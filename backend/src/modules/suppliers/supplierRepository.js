@@ -93,6 +93,29 @@ export const getSupplierByCompanyId = async (companyId) => {
   }
 };
 
+/**
+ * Obtiene el proveedor asociado al usuario autenticado,
+ * siguiendo la cadena: user → company → supplier.
+ * @param {string} userId - ID del usuario desde el JWT.
+ * @returns {Promise<object|null>}
+ */
+export const getSupplierByUserId = async (userId) => {
+  try {
+    const sql = `
+      SELECT ${supplierColumns}
+      FROM public.suppliers s
+      JOIN public.companies c ON c.id = s.company_id
+      WHERE c.user_id = $1
+      LIMIT 1;
+    `;
+    const result = await query(sql, [userId]);
+    return result.rows[0] ? mapSupplierRow(result.rows[0]) : null;
+  } catch (err) {
+    logger.error({ err, userId }, "Error en getSupplierByUserId");
+    throw new AppError("Error al consultar el proveedor del usuario", 500);
+  }
+};
+
 export const getSuppliers = async ({
   limit = 10,
   offset = 0,

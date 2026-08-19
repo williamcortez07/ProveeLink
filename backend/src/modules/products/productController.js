@@ -10,6 +10,26 @@ export const createProduct = asyncWrapper(async (req, res) => {
   });
 });
 
+/**
+ * GET /products/mine
+ * Retorna únicamente los productos del proveedor autenticado.
+ * El supplier_id se deriva del JWT — nunca del cliente.
+ */
+export const getMyProducts = asyncWrapper(async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "No autenticado." });
+  }
+  const result = await productService.getMyProductsService(userId, req.query);
+  res.status(200).json({
+    success: true,
+    message: "Catálogo del proveedor recuperado exitosamente",
+    data: result.data,
+    supplier_id: result.supplier_id,
+    pagination: result.pagination,
+  });
+});
+
 export const getProducts = asyncWrapper(async (req, res) => {
   const result = await productService.getProductService(req.query);
   res.status(200).json({

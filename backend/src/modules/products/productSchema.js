@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const uuidSchema = z.string().uuid("El ID proporcionado no es un UUID válido");
-const statusValues = ["activo", "agotado", "no disponible", "disponible"];
+const statusValues = ["active", "inactive", "out_of_stock"];
 
 export const createProductSchema = z.object({
   body: z.object({
@@ -124,7 +124,7 @@ export const changeStatusSchema = z.object({
     status: z.enum(statusValues, {
       errorMap: () => ({
         message:
-          "El estado debe ser: activo, no disponible, disponible, agotado",
+          "El estado debe ser: active, inactive, out_of_stock",
       }),
     }),
   }),

@@ -1,0 +1,210 @@
+/* ==========================================================================
+   HOMESUPPLIER.CSS
+   Estilos complementarios para el dashboard del proveedor.
+   Cubre las clases de formulario y file-upload que no están en globals.css.
+   ========================================================================== */
+
+/* ── Formulario ─────────────────────────────────────────────────────────── */
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-control:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.form-control::placeholder {
+  color: #94a3b8;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-control-file {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 0.88rem;
+  color: #475569;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-error-msg {
+  display: block;
+  font-size: 0.78rem;
+  color: #dc2626;
+  margin-top: 4px;
+  min-height: 18px;
+}
+
+/* ── Botones ─────────────────────────────────────────────────────────────── */
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.btn-outline:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.12s;
+  font-family: inherit;
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner-inline {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+
+/* ── File Upload Zone ─────────────────────────────────────────────────────── */
+.file-upload-zone {
+  position: relative;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-upload-zone:hover,
+.file-upload-zone.drag-over {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.file-upload-zone svg {
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── Skeleton loader ─────────────────────────────────────────────────────── */
+.skeleton-card {
+  background: #f1f5f9 !important;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+  background: #cbd5e1;
+  display: inline-block;
+}
+
+.skeleton-line {
+  background: #cbd5e1;
+  border-radius: 4px;
+  display: block;
+}
+
+/* ── Product Status Badges (alineados con CHECK constraint de la DB) ───────── */
+.product-card-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-active {
+  background: rgba(74, 222, 128, 0.18);
+  color: #15803d;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+}
+
+.badge-inactive {
+  background: rgba(148, 163, 184, 0.18);
+  color: #475569;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.badge-out_of_stock {
+  background: rgba(251, 191, 36, 0.18);
+  color: #b45309;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}

@@ -3,7 +3,7 @@ import * as supplierRepository from "../suppliers/supplierRepository.js";
 import * as categoryRepository from "../categories/categoryRepository.js";
 import { AppError } from "../../utils/AppError.js";
 
-const DEFAULT_STATUS = "activo";
+const DEFAULT_STATUS = "active";
 const ALLOWED_SORT_FIELDS = new Set([
   "name",
   "description",
@@ -60,6 +60,49 @@ export const createProductService = async (productData) => {
   }
 
   return createdProduct;
+};
+
+/**
+ * Obtiene los productos del proveedor autenticado.
+ * Deriva el supplier_id desde el user_id del JWT — no confía en el cliente.
+ * @param {string} userId - ID del usuario autenticado (del JWT).
+ * @param {object} queryParams - Parámetros de paginación y filtros opcionales.
+ */
+export const getMyProductsService = async (userId, {
+  page = 1,
+  pageSize = 50,
+  sortBy = "created_at",
+  sortOrder = "desc",
+  status,
+  category_id,
+} = {}) => {
+  const supplier = await supplierRepository.getSupplierByUserId(userId);
+  if (!supplier) {
+    throw new AppError("No se encontró un perfil de proveedor para este usuario.", 404);
+  }
+
+  const safeSortBy = ALLOWED_SORT_FIELDS.has(sortBy) ? sortBy : "created_at";
+  const safeSortOrder = sortOrder === "asc" ? "asc" : "desc";
+  const offset = (page - 1) * pageSize;
+
+  const { data, total } = await productRepository.getProducts({
+    limit: pageSize,
+    offset,
+    filters: { supplier_id: supplier.id, status, category_id },
+    sortBy: safeSortBy,
+    sortOrder: safeSortOrder,
+  });
+
+  return {
+    supplier_id: supplier.id,
+    data,
+    pagination: {
+      page,
+      pageSize,
+      totalItems: total,
+      totalPages: Math.ceil(total / pageSize) || 1,
+    },
+  };
 };
 
 export const getProductService = async ({

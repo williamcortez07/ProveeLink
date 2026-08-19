@@ -399,7 +399,18 @@ export const homeApi = {
   },
 
   /**
-   * Obtiene los productos de un proveedor específico.
+   * Obtiene los productos del proveedor autenticado (dashboard del proveedor).
+   * Usa GET /products/mine — el backend deriva supplier_id del JWT.
+   * No expone ni acepta un supplier_id desde el cliente.
+   * @returns {Promise<object>}
+   */
+  getMyProducts() {
+    return get(HOME_ENDPOINTS.MY_PRODUCTS);
+  },
+
+  /**
+   * Obtiene los productos de un proveedor por ID (uso público/catálogo general).
+   * NO usar para el dashboard del proveedor — usar getMyProducts() en su lugar.
    * @param {string} supplierId
    * @returns {Promise<object>}
    */
