@@ -1,158 +1,171 @@
 import { Router } from "express";
-import * as commentController from "../comments/commentController.js";
+import * as ratingController from "../ratings/ratingController.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
-import { authenticate, authorize } from "../../middlewares/auth.middlewares.js";
+import { authenticate } from "../../middlewares/auth.middlewares.js";
 import {
-  createCommentSchema,
-  getCommentsSchema,
-  commentIdParamsSchema,
-  updateCommentSchema,
-  changeCommentStatusSchema,
-} from "../comments/commentSchema.js";
+  createRatingSchema,
+  getRatingsSchema,
+  getRatingStatsSchema,
+  ratingIdParamsSchema,
+  updateRatingSchema,
+} from "../ratings/ratingSchema.js";
 
 const router = Router();
 
-// Todos los endpoints de comentarios requieren autenticación
+// Todos los endpoints de ratings requieren autenticación
 router.use(authenticate);
 
 /**
  * @openapi
  * components:
  *   schemas:
- *     CommentAuthor:
+ *     RatingAuthor:
  *       type: object
  *       properties:
  *         first_name:
  *           type: string
- *           description: Nombre del autor del comentario.
+ *           description: Nombre del autor del rating.
  *         last_name:
  *           type: string
- *           description: Apellido del autor del comentario.
+ *           description: Apellido del autor del rating.
  *         profile_picture_url:
  *           type: string
  *           nullable: true
  *           description: URL de la foto de perfil del autor.
  *
- *     Comment:
+ *     Rating:
  *       type: object
  *       properties:
  *         id:
  *           type: string
  *           format: uuid
- *           description: ID único del comentario.
+ *           description: ID único del rating.
  *         user_id:
  *           type: string
  *           format: uuid
- *           description: ID del usuario que publicó el comentario.
+ *           description: ID del usuario que publicó el rating.
  *         user:
- *           $ref: '#/components/schemas/CommentAuthor'
+ *           $ref: '#/components/schemas/RatingAuthor'
  *         supplier_id:
  *           type: string
  *           format: uuid
  *           nullable: true
- *           description: ID del proveedor destinatario. Nulo si el comentario es para un producto.
+ *           description: ID del proveedor calificado. Nulo si el rating es para un producto.
  *         product_id:
  *           type: string
  *           format: uuid
  *           nullable: true
- *           description: ID del producto destinatario. Nulo si el comentario es para un proveedor.
- *         content:
- *           type: string
- *           description: Contenido del comentario.
- *         status:
- *           type: string
- *           enum:
- *             - visible
- *             - hidden
- *             - under_review
- *           description: Estado de visibilidad del comentario.
+ *           description: ID del producto calificado. Nulo si el rating es para un proveedor.
+ *         score:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 5
+ *           description: Calificación del usuario (1 a 5 estrellas).
  *         created_at:
  *           type: string
  *           format: date-time
- *           description: Fecha de creación del comentario.
- *         updated_at:
- *           type: string
- *           format: date-time
- *           description: Fecha de la última actualización.
+ *           description: Fecha de creación del rating.
  *       example:
- *         id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+ *         id: "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e"
  *         user_id: "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f90"
  *         user:
- *           first_name: "Carlos"
- *           last_name: "Méndez"
+ *           first_name: "María"
+ *           last_name: "Gómez"
  *           profile_picture_url: null
  *         supplier_id: "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f"
  *         product_id: null
- *         content: "Excelente servicio, muy puntual y profesional."
- *         status: "visible"
- *         created_at: "2026-08-01T10:30:00.000Z"
- *         updated_at: "2026-08-01T10:30:00.000Z"
+ *         score: 4
+ *         created_at: "2026-08-10T14:20:00.000Z"
  *
- *     CommentInput:
+ *     RatingInput:
  *       type: object
+ *       required:
+ *         - score
  *       description: >-
  *         Exactamente uno de supplier_id o product_id debe estar presente.
- *         No se permiten ambos ni ninguno.
+ *         Si el usuario ya calificó ese destino, el score existente será actualizado.
  *       properties:
  *         supplier_id:
  *           type: string
  *           format: uuid
  *           nullable: true
- *           description: UUID del proveedor destinatario. Mutuamente excluyente con product_id.
+ *           description: UUID del proveedor a calificar. Mutuamente excluyente con product_id.
  *         product_id:
  *           type: string
  *           format: uuid
  *           nullable: true
- *           description: UUID del producto destinatario. Mutuamente excluyente con supplier_id.
- *         content:
- *           type: string
- *           minLength: 1
- *           maxLength: 2000
- *           description: Contenido del comentario.
+ *           description: UUID del producto a calificar. Mutuamente excluyente con supplier_id.
+ *         score:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 5
+ *           description: Calificación de 1 a 5 estrellas.
  *       example:
  *         supplier_id: "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f"
- *         content: "Excelente servicio, muy puntual y profesional."
+ *         score: 4
  *
- *     CommentContentUpdate:
+ *     RatingScoreUpdate:
  *       type: object
  *       required:
- *         - content
+ *         - score
  *       properties:
- *         content:
- *           type: string
- *           minLength: 1
- *           maxLength: 2000
- *           description: Nuevo contenido del comentario.
+ *         score:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 5
+ *           description: Nuevo score del rating (1 a 5 estrellas).
  *       example:
- *         content: "Actualización: el servicio mejoró considerablemente."
+ *         score: 5
  *
- *     CommentStatusUpdate:
+ *     RatingStats:
  *       type: object
- *       required:
- *         - status
  *       properties:
- *         status:
- *           type: string
- *           enum:
- *             - visible
- *             - hidden
- *             - under_review
- *           description: Nuevo estado del comentario.
+ *         average:
+ *           type: number
+ *           format: float
+ *           nullable: true
+ *           description: Promedio de calificaciones. Null si no hay ratings aún.
+ *         total:
+ *           type: integer
+ *           description: Cantidad total de calificaciones.
+ *         distribution:
+ *           type: object
+ *           description: Distribución de calificaciones por número de estrellas.
+ *           properties:
+ *             5:
+ *               type: integer
+ *             4:
+ *               type: integer
+ *             3:
+ *               type: integer
+ *             2:
+ *               type: integer
+ *             1:
+ *               type: integer
  *       example:
- *         status: "hidden"
+ *         average: 4.3
+ *         total: 127
+ *         distribution:
+ *           5: 80
+ *           4: 30
+ *           3: 10
+ *           2: 4
+ *           1: 3
  */
 
 /**
  * @openapi
- * /api/v1/comments:
+ * /api/v1/ratings:
  *   post:
- *     summary: Crear un comentario
+ *     summary: Crear o actualizar un rating (upsert)
  *     description: >-
- *       Permite a un usuario autenticado publicar un comentario dirigido a un
- *       proveedor o a un producto. Exactamente uno de los dos destinatarios debe
- *       ser proporcionado. El user_id se extrae del token JWT.
+ *       Permite a un usuario autenticado calificar un proveedor o un producto
+ *       con un score de 1 a 5 estrellas. Si el usuario ya calificó el mismo
+ *       destino, el score existente será actualizado (upsert atómico).
+ *       Exactamente uno de supplier_id o product_id debe estar presente.
+ *       El user_id se extrae del token JWT.
  *     tags:
- *       - Comentarios
+ *       - Ratings
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -160,10 +173,10 @@ router.use(authenticate);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CommentInput'
+ *             $ref: '#/components/schemas/RatingInput'
  *     responses:
  *       201:
- *         description: Comentario registrado exitosamente.
+ *         description: Rating registrado exitosamente (nuevo).
  *         content:
  *           application/json:
  *             schema:
@@ -174,13 +187,28 @@ router.use(authenticate);
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Comentario registrado exitosamente"
+ *                   example: "Rating registrado exitosamente"
  *                 data:
- *                   $ref: '#/components/schemas/Comment'
+ *                   $ref: '#/components/schemas/Rating'
+ *       200:
+ *         description: Rating actualizado exitosamente (upsert — ya existía).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Rating actualizado exitosamente"
+ *                 data:
+ *                   $ref: '#/components/schemas/Rating'
  *       400:
  *         description: >-
- *           Error de validación: contenido vacío, ambos destinatarios provistos,
- *           ningún destinatario, proveedor o producto inexistente.
+ *           Error de validación: score fuera de rango, ambos destinatarios
+ *           provistos, ningún destinatario, proveedor o producto inexistente.
  *         content:
  *           application/json:
  *             schema:
@@ -205,13 +233,13 @@ router.use(authenticate);
  *               $ref: '#/components/schemas/ErrorResponse'
  *
  *   get:
- *     summary: Obtener comentarios con filtros y paginación
+ *     summary: Obtener ratings con filtros y paginación
  *     description: >-
- *       Retorna un listado paginado de comentarios. Se puede filtrar por proveedor,
- *       producto, estado o autor. Los filtros supplier_id y product_id son mutuamente
- *       excluyentes en la práctica, aunque no se valida a nivel de query params.
+ *       Retorna un listado paginado de ratings. Se puede filtrar por proveedor,
+ *       producto o usuario. Útil para mostrar las calificaciones de un proveedor
+ *       o producto específico, o para consultar los ratings de un usuario.
  *     tags:
- *       - Comentarios
+ *       - Ratings
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -220,25 +248,19 @@ router.use(authenticate);
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Filtrar comentarios de un proveedor específico.
+ *         description: Filtrar ratings de un proveedor específico.
  *       - in: query
  *         name: product_id
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Filtrar comentarios de un producto específico.
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [visible, hidden, under_review]
- *         description: Filtrar por estado de visibilidad.
+ *         description: Filtrar ratings de un producto específico.
  *       - in: query
  *         name: user_id
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Filtrar comentarios publicados por un usuario específico.
+ *         description: Filtrar ratings publicados por un usuario específico.
  *       - in: query
  *         name: page
  *         schema:
@@ -256,7 +278,7 @@ router.use(authenticate);
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [created_at, updated_at, status]
+ *           enum: [score, created_at]
  *           default: created_at
  *         description: Campo de ordenamiento.
  *       - in: query
@@ -268,7 +290,7 @@ router.use(authenticate);
  *         description: Sentido del ordenamiento.
  *     responses:
  *       200:
- *         description: Comentarios recuperados exitosamente.
+ *         description: Ratings recuperados exitosamente.
  *         content:
  *           application/json:
  *             schema:
@@ -279,11 +301,11 @@ router.use(authenticate);
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Comentarios recuperados exitosamente"
+ *                   example: "Ratings recuperados exitosamente"
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Comment'
+ *                     $ref: '#/components/schemas/Rating'
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -295,10 +317,10 @@ router.use(authenticate);
  *                       example: 10
  *                     totalItems:
  *                       type: integer
- *                       example: 25
+ *                       example: 42
  *                     totalPages:
  *                       type: integer
- *                       example: 3
+ *                       example: 5
  *       400:
  *         description: Parámetros de query inválidos.
  *         content:
@@ -320,37 +342,40 @@ router.use(authenticate);
  */
 router.post(
   "/",
-  validateRequest(createCommentSchema),
-  commentController.createComment,
+  validateRequest(createRatingSchema),
+  ratingController.upsertRating,
 );
-
-router.get(
-  "/",
-  validateRequest(getCommentsSchema),
-  commentController.getComments,
-);
+router.get("/", validateRequest(getRatingsSchema), ratingController.getRatings);
 
 /**
  * @openapi
- * /api/v1/comments/{id}:
+ * /api/v1/ratings/stats:
  *   get:
- *     summary: Obtener comentario por ID
- *     description: Retorna un comentario específico con los datos de su autor.
+ *     summary: Obtener estadísticas de ratings
+ *     description: >-
+ *       Retorna el promedio, el total de calificaciones y la distribución
+ *       por número de estrellas (1 a 5) para un proveedor o un producto.
+ *       Exactamente uno de supplier_id o product_id debe ser proporcionado.
  *     tags:
- *       - Comentarios
+ *       - Ratings
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
- *         required: true
+ *       - in: query
+ *         name: supplier_id
  *         schema:
  *           type: string
  *           format: uuid
- *         description: UUID v4 del comentario.
+ *         description: UUID del proveedor cuyas estadísticas se desean consultar.
+ *       - in: query
+ *         name: product_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID del producto cuyas estadísticas se desean consultar.
  *     responses:
  *       200:
- *         description: Comentario encontrado exitosamente.
+ *         description: Estadísticas obtenidas exitosamente.
  *         content:
  *           application/json:
  *             schema:
@@ -361,9 +386,162 @@ router.get(
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Comentario encontrado exitosamente"
+ *                   example: "Estadísticas de ratings obtenidas exitosamente"
  *                 data:
- *                   $ref: '#/components/schemas/Comment'
+ *                   $ref: '#/components/schemas/RatingStats'
+ *       400:
+ *         description: Falta supplier_id o product_id, o se proporcionaron ambos.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: No autenticado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       404:
+ *         description: El proveedor o producto especificado no existe.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get(
+  "/stats",
+  validateRequest(getRatingStatsSchema),
+  ratingController.getRatingStats,
+);
+
+/**
+ * @openapi
+ * /api/v1/ratings/me:
+ *   get:
+ *     summary: Obtener mis ratings
+ *     description: >-
+ *       Retorna todos los ratings publicados por el usuario autenticado,
+ *       con paginación. El user_id se extrae del token JWT.
+ *     tags:
+ *       - Ratings
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número de página.
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           maximum: 100
+ *         description: Resultados por página.
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [score, created_at]
+ *           default: created_at
+ *         description: Campo de ordenamiento.
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sentido del ordenamiento.
+ *     responses:
+ *       200:
+ *         description: Ratings del usuario autenticado recuperados exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Tus ratings recuperados exitosamente"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Rating'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     pageSize:
+ *                       type: integer
+ *                     totalItems:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       401:
+ *         description: No autenticado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get(
+  "/me",
+  validateRequest(getRatingsSchema),
+  ratingController.getMyRatings,
+);
+
+/**
+ * @openapi
+ * /api/v1/ratings/{id}:
+ *   get:
+ *     summary: Obtener rating por ID
+ *     description: Retorna un rating específico con los datos de su autor.
+ *     tags:
+ *       - Ratings
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID v4 del rating.
+ *     responses:
+ *       200:
+ *         description: Rating encontrado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Rating encontrado exitosamente"
+ *                 data:
+ *                   $ref: '#/components/schemas/Rating'
  *       400:
  *         description: Formato de ID inválido.
  *         content:
@@ -377,7 +555,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/UnauthorizedError'
  *       404:
- *         description: Comentario no encontrado.
+ *         description: Rating no encontrado.
  *         content:
  *           application/json:
  *             schema:
@@ -390,13 +568,14 @@ router.get(
  *               $ref: '#/components/schemas/ErrorResponse'
  *
  *   put:
- *     summary: Actualizar contenido de un comentario
+ *     summary: Actualizar el score de un rating
  *     description: >-
- *       Modifica el contenido de un comentario existente. Solo el autor del
- *       comentario o un Administrador pueden realizar esta operación.
- *       No es posible cambiar el destinatario (supplier_id / product_id).
+ *       Modifica el score de un rating existente. Solo el autor del rating
+ *       o un Administrador pueden realizar esta operación.
+ *       No es posible cambiar el destinatario (supplier_id / product_id)
+ *       ni el usuario propietario.
  *     tags:
- *       - Comentarios
+ *       - Ratings
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -406,16 +585,16 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: UUID v4 del comentario a actualizar.
+ *         description: UUID v4 del rating a actualizar.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CommentContentUpdate'
+ *             $ref: '#/components/schemas/RatingScoreUpdate'
  *     responses:
  *       200:
- *         description: Comentario actualizado exitosamente.
+ *         description: Rating actualizado exitosamente.
  *         content:
  *           application/json:
  *             schema:
@@ -426,11 +605,11 @@ router.get(
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Comentario actualizado exitosamente"
+ *                   example: "Rating actualizado exitosamente"
  *                 data:
- *                   $ref: '#/components/schemas/Comment'
+ *                   $ref: '#/components/schemas/Rating'
  *       400:
- *         description: Contenido inválido o ID mal formado.
+ *         description: Score inválido o ID mal formado.
  *         content:
  *           application/json:
  *             schema:
@@ -448,7 +627,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/ForbiddenError'
  *       404:
- *         description: Comentario no encontrado.
+ *         description: Rating no encontrado.
  *         content:
  *           application/json:
  *             schema:
@@ -461,12 +640,12 @@ router.get(
  *               $ref: '#/components/schemas/ErrorResponse'
  *
  *   delete:
- *     summary: Eliminar un comentario
+ *     summary: Eliminar un rating
  *     description: >-
- *       Elimina permanentemente un comentario. Solo el autor del comentario
+ *       Elimina permanentemente un rating. Solo el autor del rating
  *       o un Administrador pueden realizar esta operación.
  *     tags:
- *       - Comentarios
+ *       - Ratings
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -476,10 +655,10 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: UUID v4 del comentario a eliminar.
+ *         description: UUID v4 del rating a eliminar.
  *     responses:
  *       200:
- *         description: Comentario eliminado exitosamente.
+ *         description: Rating eliminado exitosamente.
  *         content:
  *           application/json:
  *             schema:
@@ -490,7 +669,7 @@ router.get(
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Comentario eliminado exitosamente"
+ *                   example: "Rating eliminado exitosamente"
  *       400:
  *         description: ID mal formado.
  *         content:
@@ -510,7 +689,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/ForbiddenError'
  *       404:
- *         description: Comentario no encontrado.
+ *         description: Rating no encontrado.
  *         content:
  *           application/json:
  *             schema:
@@ -524,101 +703,18 @@ router.get(
  */
 router.get(
   "/:id",
-  validateRequest(commentIdParamsSchema),
-  commentController.getCommentById,
+  validateRequest(ratingIdParamsSchema),
+  ratingController.getRatingById,
 );
-
 router.put(
   "/:id",
-  validateRequest(updateCommentSchema),
-  commentController.updateComment,
+  validateRequest(updateRatingSchema),
+  ratingController.updateRating,
 );
-
 router.delete(
   "/:id",
-  validateRequest(commentIdParamsSchema),
-  commentController.deleteComment,
-);
-
-/**
- * @openapi
- * /api/v1/comments/{id}/status:
- *   patch:
- *     summary: Cambiar el estado de un comentario (moderación)
- *     description: >-
- *       Permite a un Administrador cambiar el estado de visibilidad de un comentario.
- *       Los estados posibles son: visible, hidden y under_review.
- *       Este endpoint está restringido exclusivamente al rol Administrador.
- *     tags:
- *       - Comentarios
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: UUID v4 del comentario a moderar.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/CommentStatusUpdate'
- *     responses:
- *       200:
- *         description: Estado actualizado exitosamente.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Estado del comentario actualizado exitosamente"
- *                 data:
- *                   $ref: '#/components/schemas/Comment'
- *       400:
- *         description: Estado inválido o ID mal formado.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: No autenticado.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UnauthorizedError'
- *       403:
- *         description: Sin permisos — rol insuficiente (requiere Administrador).
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ForbiddenError'
- *       404:
- *         description: Comentario no encontrado.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Error interno del servidor.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.patch(
-  "/:id/status",
-  authorize("Administrador"),
-  validateRequest(changeCommentStatusSchema),
-  commentController.changeCommentStatus,
+  validateRequest(ratingIdParamsSchema),
+  ratingController.deleteRating,
 );
 
 export default router;
