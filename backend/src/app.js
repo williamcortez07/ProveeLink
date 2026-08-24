@@ -9,6 +9,8 @@ import categoryRoutes from "./modules/categories/categoryRoutes.js";
 import companyRoutes from "./modules/companies/companyRoutes.js";
 import supplierRoutes from "./modules/suppliers/supplierRoutes.js";
 import productRoutes from "./modules/products/productRoutes.js";
+import commentRoutes from "./modules/comments/commentRoutes.js";
+import ratingRoutes from "./modules/ratings/ratingRoutes.js";
 import { setupSwagger } from "./config/swagger.js";
 import { env } from "./config/environment.js";
 
@@ -57,6 +59,10 @@ app.use("/api/v1/companies", companyRoutes);
 app.use("/api/v1/suppliers", supplierRoutes);
 // Módulo de Productos
 app.use("/api/v1/products", productRoutes);
+// Módulo de Comentarios
+app.use("/api/v1/comments", commentRoutes);
+// Módulo de Ratings
+app.use("/api/v1/ratings", ratingRoutes);
 
 app.use(errorHandler);
 
