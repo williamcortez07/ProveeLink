@@ -1,0 +1,292 @@
+/* ==========================================================================
+   FAVORITES PAGE · ProveeLink
+   Todos los valores de color, radio, sombra y tipografía
+   se toman de las variables de globals.css.
+   ========================================================================== */
+
+/* ── Header de la página ──────────────────────────────────────────────────── */
+
+.fav-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.fav-page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fav-page-title svg {
+  color: #f59e0b;
+}
+
+.fav-page-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.fav-counter-badge {
+  background: var(--tint-yellow);
+  color: #92400e;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+/* ── Grilla de tarjetas ───────────────────────────────────────────────────── */
+
+.fav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* ── Tarjeta de favorito ──────────────────────────────────────────────────── */
+
+.fav-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow var(--trans-base), transform var(--trans-base);
+}
+
+.fav-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.fav-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fav-card-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-medium);
+  background: var(--tint-blue);
+  border: 1px solid var(--color-border-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent-blue);
+  flex-shrink: 0;
+}
+
+.fav-card-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.fav-card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-card-subtitle {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rating dentro de la tarjeta */
+.fav-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--tint-yellow);
+  border-radius: var(--radius-medium);
+}
+
+.fav-card-score {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-left: auto;
+}
+
+.fav-card-coverage {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fav-card-date {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.fav-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.fav-btn-visit {
+  /* Hereda .btn .btn-green-solid */
+}
+
+.fav-btn-remove {
+  background: none;
+  border: 1px solid var(--color-border-input);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-small);
+  transition: all var(--trans-fast);
+}
+
+.fav-btn-remove:hover {
+  background: rgba(239, 68, 68, 0.06);
+  color: var(--color-heart-red);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.fav-btn-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Estado vacío ─────────────────────────────────────────────────────────── */
+
+.fav-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.fav-empty-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f59e0b;
+  margin-bottom: 20px;
+}
+
+.fav-empty-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0 0 8px 0;
+}
+
+.fav-empty-sub {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+/* ── Banner informativo ───────────────────────────────────────────────────── */
+
+.fav-info-banner {
+  background: var(--color-bg-alert);
+  border: 1px solid var(--color-border-alert);
+  border-radius: var(--radius-medium);
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  color: #92400e;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.fav-info-banner svg {
+  flex-shrink: 0;
+  color: #f59e0b;
+  margin-top: 1px;
+}
+
+/* ── Skeletons ────────────────────────────────────────────────────────────── */
+
+.skeleton-line {
+  background: linear-gradient(
+    90deg,
+    var(--color-border-subtle) 25%,
+    #f1f5f9 50%,
+    var(--color-border-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: fav-shimmer 1.4s infinite;
+  border-radius: 6px;
+  display: block;
+}
+
+.skeleton-circle {
+  background: linear-gradient(
+    90deg,
+    var(--color-border-subtle) 25%,
+    #f1f5f9 50%,
+    var(--color-border-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: fav-shimmer 1.4s infinite;
+  border-radius: 50%;
+  display: block;
+}
+
+@keyframes fav-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .fav-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fav-card-actions {
+    flex-direction: column;
+  }
+
+  .fav-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .fav-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

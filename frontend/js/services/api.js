@@ -38,6 +38,34 @@ const HOME_ENDPOINTS = Object.freeze({
 });
 
 /**
+ * Mapa de endpoints del módulo de Comentarios.
+ * @readonly
+ */
+const COMMENT_ENDPOINTS = Object.freeze({
+  /** POST / GET /api/v1/comments */
+  BASE: `${API_BASE_URL}/comments`,
+  /** GET / PUT / DELETE /api/v1/comments/:id */
+  BY_ID: (id) => `${API_BASE_URL}/comments/${id}`,
+  /** PATCH /api/v1/comments/:id/status  (solo Administrador) */
+  STATUS: (id) => `${API_BASE_URL}/comments/${id}/status`,
+});
+
+/**
+ * Mapa de endpoints del módulo de Ratings.
+ * @readonly
+ */
+const RATING_ENDPOINTS = Object.freeze({
+  /** POST / GET /api/v1/ratings */
+  BASE: `${API_BASE_URL}/ratings`,
+  /** GET /api/v1/ratings/stats?supplier_id=... o ?product_id=... */
+  STATS: `${API_BASE_URL}/ratings/stats`,
+  /** GET /api/v1/ratings/me — ratings del usuario autenticado */
+  ME: `${API_BASE_URL}/ratings/me`,
+  /** GET / PUT / DELETE /api/v1/ratings/:id */
+  BY_ID: (id) => `${API_BASE_URL}/ratings/${id}`,
+});
+
+/**
  * Mapa de endpoints del módulo de Perfil de Usuario.
  * @readonly
  */
@@ -438,11 +466,12 @@ export const homeApi = {
 
   /**
    * Agrega un proveedor a favoritos.
+   * NOTA: Este endpoint aún no está disponible en el backend.
    * @param {string} supplierId
    * @returns {Promise<object>}
    */
   addFavorite(supplierId) {
-    return post(HOME_ENDPOINTS.FAVORITES, { supplierId });
+    return post(HOME_ENDPOINTS.FAVORITES, { supplier_id: supplierId });
   },
 
   // ── Proveedor (ROLES.SUPPLIER) ─────────────────────────────────────────────
@@ -570,5 +599,173 @@ export const profileApi = {
    */
   deactivate(userId) {
     return patch(USER_ENDPOINTS.DEACTIVATE(userId), { status: "inactive" });
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMENT API — operaciones CRUD de comentarios
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @namespace commentApi
+ * Todas las peticiones del módulo de Comentarios deben pasar por aquí.
+ * Ningún módulo de UI debe llamar fetch() directamente.
+ *
+ * Contratos del backend (backend/src/modules/comments/commentRoutes.js):
+ *  - POST   /api/v1/comments          → { supplier_id?, product_id?, content } (XOR)
+ *  - GET    /api/v1/comments          → ?supplier_id&product_id&status&user_id&page&pageSize&sortBy&sortOrder
+ *  - GET    /api/v1/comments/:id
+ *  - PUT    /api/v1/comments/:id      → { content }
+ *  - DELETE /api/v1/comments/:id
+ *  - PATCH  /api/v1/comments/:id/status → { status } (solo Administrador)
+ */
+export const commentApi = {
+  /**
+   * Lista comentarios con filtros y paginación.
+   * @param {{
+   *   supplier_id?: string,
+   *   product_id?: string,
+   *   status?: 'visible'|'hidden'|'under_review',
+   *   user_id?: string,
+   *   page?: number,
+   *   pageSize?: number,
+   *   sortBy?: 'created_at'|'updated_at'|'status',
+   *   sortOrder?: 'asc'|'desc'
+   * }} [opts={}]
+   * @returns {Promise<{ success: boolean, data: Array<object>, pagination: object }>}
+   */
+  getComments(opts = {}) {
+    const params = new URLSearchParams();
+    if (opts.supplier_id) params.append('supplier_id', opts.supplier_id);
+    if (opts.product_id)  params.append('product_id',  opts.product_id);
+    if (opts.status)      params.append('status',      opts.status);
+    if (opts.user_id)     params.append('user_id',     opts.user_id);
+    if (opts.page)        params.append('page',        String(opts.page));
+    if (opts.pageSize)    params.append('pageSize',    String(opts.pageSize));
+    if (opts.sortBy)      params.append('sortBy',      opts.sortBy);
+    if (opts.sortOrder)   params.append('sortOrder',   opts.sortOrder);
+    const qs = params.toString();
+    return get(`${COMMENT_ENDPOINTS.BASE}${qs ? `?${qs}` : ''}`);
+  },
+
+  /**
+   * Crea un comentario dirigido a un proveedor O a un producto (XOR).
+   * El user_id se extrae del JWT en el servidor — no se envía.
+   * @param {{ supplier_id?: string, product_id?: string, content: string }} payload
+   * @returns {Promise<{ success: boolean, message: string, data: object }>}
+   */
+  createComment(payload) {
+    return post(COMMENT_ENDPOINTS.BASE, payload);
+  },
+
+  /**
+   * Actualiza el contenido de un comentario.
+   * Solo el autor del comentario o un Administrador pueden hacerlo.
+   * @param {string} commentId
+   * @param {{ content: string }} payload
+   * @returns {Promise<{ success: boolean, message: string, data: object }>}
+   */
+  updateComment(commentId, payload) {
+    return put(COMMENT_ENDPOINTS.BY_ID(commentId), payload);
+  },
+
+  /**
+   * Elimina un comentario permanentemente.
+   * Solo el autor del comentario o un Administrador pueden hacerlo.
+   * @param {string} commentId
+   * @returns {Promise<{ success: boolean, message: string }>}
+   */
+  deleteComment(commentId) {
+    return del(COMMENT_ENDPOINTS.BY_ID(commentId));
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RATING API — operaciones de calificaciones (1–5 estrellas)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @namespace ratingApi
+ * Todas las peticiones del módulo de Ratings deben pasar por aquí.
+ * Ningún módulo de UI debe llamar fetch() directamente.
+ *
+ * Contratos del backend (backend/src/modules/ratings/ratingRoutes.js):
+ *  - POST   /api/v1/ratings           → { supplier_id?, product_id?, score: 1-5 } (XOR, upsert)
+ *  - GET    /api/v1/ratings           → ?supplier_id&product_id&user_id&page&pageSize
+ *  - GET    /api/v1/ratings/stats     → ?supplier_id o ?product_id
+ *  - GET    /api/v1/ratings/me        → ratings del usuario autenticado
+ *  - PUT    /api/v1/ratings/:id       → { score: 1-5 }
+ *  - DELETE /api/v1/ratings/:id
+ */
+export const ratingApi = {
+  /**
+   * Crea o actualiza un rating (upsert atómico en el servidor).
+   * Si el usuario ya calificó el mismo destino, actualiza el score existente.
+   * Responde 201 si es nuevo, 200 si actualizó.
+   * @param {{ supplier_id?: string, product_id?: string, score: number }} payload
+   * @returns {Promise<{ success: boolean, message: string, data: object }>}
+   */
+  upsertRating(payload) {
+    return post(RATING_ENDPOINTS.BASE, payload);
+  },
+
+  /**
+   * Obtiene las estadísticas de rating para un proveedor o producto.
+   * @param {{ supplier_id?: string, product_id?: string }} opts — exactamente uno de los dos
+   * @returns {Promise<{ success: boolean, data: { average: number|null, total: number, distribution: object } }>}
+   */
+  getRatingStats(opts) {
+    const params = new URLSearchParams();
+    if (opts.supplier_id) params.append('supplier_id', opts.supplier_id);
+    if (opts.product_id)  params.append('product_id',  opts.product_id);
+    return get(`${RATING_ENDPOINTS.STATS}?${params.toString()}`);
+  },
+
+  /**
+   * Obtiene ratings filtrados. Útil para detectar si el usuario ya calificó.
+   * @param {{
+   *   supplier_id?: string,
+   *   product_id?: string,
+   *   user_id?: string,
+   *   page?: number,
+   *   pageSize?: number
+   * }} [opts={}]
+   * @returns {Promise<{ success: boolean, data: Array<object>, pagination: object }>}
+   */
+  getRatings(opts = {}) {
+    const params = new URLSearchParams();
+    if (opts.supplier_id) params.append('supplier_id', opts.supplier_id);
+    if (opts.product_id)  params.append('product_id',  opts.product_id);
+    if (opts.user_id)     params.append('user_id',     opts.user_id);
+    if (opts.page)        params.append('page',        String(opts.page));
+    if (opts.pageSize)    params.append('pageSize',    String(opts.pageSize));
+    const qs = params.toString();
+    return get(`${RATING_ENDPOINTS.BASE}${qs ? `?${qs}` : ''}`);
+  },
+
+  /**
+   * Obtiene todos los ratings del usuario autenticado (paginado).
+   * El user_id se extrae del JWT en el servidor.
+   * @param {{ page?: number, pageSize?: number, sortBy?: string, sortOrder?: string }} [opts={}]
+   * @returns {Promise<{ success: boolean, data: Array<object>, pagination: object }>}
+   */
+  getMyRatings(opts = {}) {
+    const params = new URLSearchParams();
+    if (opts.page)      params.append('page',      String(opts.page));
+    if (opts.pageSize)  params.append('pageSize',  String(opts.pageSize));
+    if (opts.sortBy)    params.append('sortBy',    opts.sortBy);
+    if (opts.sortOrder) params.append('sortOrder', opts.sortOrder);
+    const qs = params.toString();
+    return get(`${RATING_ENDPOINTS.ME}${qs ? `?${qs}` : ''}`);
+  },
+
+  /**
+   * Elimina un rating del usuario autenticado.
+   * Solo el autor o un Administrador pueden hacerlo.
+   * @param {string} ratingId
+   * @returns {Promise<{ success: boolean, message: string }>}
+   */
+  deleteRating(ratingId) {
+    return del(RATING_ENDPOINTS.BY_ID(ratingId));
   },
 };
