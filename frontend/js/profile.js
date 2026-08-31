@@ -132,7 +132,7 @@ function renderProfile(user) {
           <div class="profile-action-icon profile-action-icon--blue">${SVG.edit}</div>
           <span>Editar perfil</span>
         </button>
-        <a class="profile-action-btn" href="/pages/favorites.html" aria-label="Mis favoritos">
+        <a class="profile-action-btn" href="favorites.html" aria-label="Mis favoritos">
           <div class="profile-action-icon profile-action-icon--green">${SVG.heart}</div>
           <span>Favoritos</span>
         </a>
@@ -179,7 +179,7 @@ function renderProfile(user) {
       </div>
 
       <!-- CTA: ¿Tienes un negocio? -->
-      <a class="profile-business-cta" href="/pages/company/createCompany.html" id="linkCreateCompany">
+      <a class="profile-business-cta" href="company/createCompany.html" id="linkCreateCompany">
         <div class="profile-business-cta-icon">${SVG.building}</div>
         <div class="profile-business-cta-body">
           <p class="profile-business-cta-title">¿Tienes un negocio?</p>
@@ -489,18 +489,21 @@ const ProfileController = {
   // ── Deactivate ─────────────────────────────────────────────────────────────
 
   async _handleDeactivate(userId) {
-    const confirmed = window.confirm(
-      "¿Estás seguro de desactivar tu cuenta? Tu sesión se cerrará automáticamente.",
-    );
-    if (!confirmed) return;
-
-    try {
-      await profileApi.deactivate(userId);
-      notify.info("Cuenta desactivada. Cerrando sesión…");
-      setTimeout(() => TokenManager.logout(), 1500);
-    } catch (err) {
-      notify.error(err.message || "No se pudo desactivar la cuenta.");
-    }
+    notify.confirm({
+      title: "Desactivar cuenta",
+      message: "¿Estás seguro de desactivar tu cuenta? Tu sesión se cerrará automáticamente.",
+      confirmText: "Desactivar",
+      cancelText: "Cancelar",
+      onConfirm: async () => {
+        try {
+          await profileApi.deactivate(userId);
+          notify.info("Cuenta desactivada. Cerrando sesión…");
+          setTimeout(() => TokenManager.logout(), 1500);
+        } catch (err) {
+          notify.error(err.message || "No se pudo desactivar la cuenta.");
+        }
+      },
+    });
   },
 
   // ── Shared ─────────────────────────────────────────────────────────────────

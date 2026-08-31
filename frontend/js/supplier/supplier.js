@@ -178,12 +178,25 @@ function showCommentSkeletons(container, count = 3) {
   `).join("");
 }
 
+/**
+ * Formatea un número a precio con símbolo de moneda.
+ * @param {number|string} val
+ * @param {string} [currency="USD"]
+ * @returns {string}
+ */
+function formatPrice(val, currency = "USD") {
+  const num = parseFloat(val) || 0;
+  const symbolMap = { USD: "$", HNL: "L", NIO: "C$", EUR: "€" };
+  const symbol = symbolMap[currency] || `${currency} `;
+  return `${symbol}${num.toLocaleString("es-CR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // RENDERIZADO DEL PERFIL DEL PROVEEDOR
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Carga y renderiza el perfil del proveedor junto con sus productos.
+ * Carga y renderiza el perfil del proveedor junto con sus productos, ratings y comentarios.
  */
 async function loadSupplierProfile() {
   const container = document.getElementById("supplierProfileContainer");
@@ -217,50 +230,34 @@ async function loadSupplierProfile() {
 
     document.title = `${supplier.company_name ?? "Proveedor"} · ProveeLink`;
 
+    // Intentar obtener la información de la Empresa (teléfono, email, dirección)
+    let company = null;
+    if (supplier.company_id) {
+      try {
+        const compRes = await homeApi.getCompanyById(supplier.company_id);
+        company = compRes?.data ?? null;
+      } catch (compErr) {
+        console.warn("[supplier.js] No se pudo obtener la empresa asociada:", compErr);
+      }
+    }
+
+    const phone = company?.phone || supplier.phone;
+    const email = company?.email || supplier.email;
+
+    // Normalización de WhatsApp
+    const cleanPhone = phone ? String(phone).replace(/[^\d+]/g, "") : "";
+    const waNumber = cleanPhone.startsWith("+") ? cleanPhone.slice(1) : cleanPhone;
+    const waLink = waNumber ? `https://wa.me/${waNumber}` : null;
+
     const rating = parseFloat(supplier.average_rating) || 0;
     const stars = buildStars(rating);
     const ratingDisplay = rating > 0 ? `${rating.toFixed(1)} / 5.0` : "Sin calificaciones";
     const coverage = COVERAGE_MAP[supplier.geographic_coverage] ?? supplier.geographic_coverage ?? "";
 
-    // Intentar cargar productos
-    let productsHtml = "";
-    try {
-      const prodRes = await homeApi.getProductsBySupplier(supplierId);
-      const products = prodRes?.data ?? [];
-      if (products.length > 0) {
-        productsHtml = `
-          <div style="margin-top: 32px;">
-            <div class="section-header-block">
-              <h2 class="heading-md">Catálogo de Productos (${products.length})</h2>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
-              ${products.map((p) => `
-                <article class="card-supplier-row" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;">
-                  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-                    <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--color-primary-dark);background:var(--tint-green);padding:2px 8px;border-radius:var(--radius-pill);">
-                      ${escapeHtml(p.category_name ?? "Producto")}
-                    </span>
-                    <span style="font-size:0.9rem;font-weight:700;color:var(--color-text-main);">
-                      $${parseFloat(p.price || 0).toLocaleString("es-CR", { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <h4 style="margin:0;font-size:1rem;color:var(--color-text-main);">${escapeHtml(p.name)}</h4>
-                  ${p.description ? `<p style="font-size:0.85rem;color:var(--color-text-muted);margin:0;line-height:1.4;">${escapeHtml(p.description)}</p>` : ""}
-                  ${p.stock !== undefined ? `<p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:auto;">Stock: <b>${p.stock}</b> unidades</p>` : ""}
-                </article>
-              `).join("")}
-            </div>
-          </div>
-        `;
-      }
-    } catch (prodErr) {
-      console.warn("[supplier.js] No se pudieron obtener productos:", prodErr);
-    }
-
     container.innerHTML = `
-      <!-- Perfil del proveedor -->
-      <article style="background:var(--color-bg-card);border:1px solid var(--color-border-input);border-radius:var(--radius-large);padding:28px;margin-bottom:24px;box-shadow:var(--shadow-md);">
-        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;width:100%;">
+      <!-- Header / Perfil del proveedor -->
+      <article style="background:var(--color-bg-card);border:1px solid var(--color-border-input);border-radius:var(--radius-large);padding:28px;margin-bottom:28px;box-shadow:var(--shadow-md);">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:20px;width:100%;">
           <div style="width:72px;height:72px;border-radius:var(--radius-medium);background:var(--tint-blue);border:1px solid var(--color-border-input);display:flex;align-items:center;justify-content:center;color:var(--color-accent-blue);flex-shrink:0;">
             <svg viewBox="0 0 24 24" width="36" height="36" fill="none">
               <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
@@ -269,7 +266,7 @@ async function loadSupplierProfile() {
               <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
             </svg>
           </div>
-          <div style="flex:1;min-width:220px;">
+          <div style="flex:1;min-width:240px;">
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
               <h1 style="font-size:1.6rem;font-weight:800;margin:0;color:var(--color-text-main);">
                 ${escapeHtml(supplier.company_name ?? "Proveedor")}
@@ -286,6 +283,16 @@ async function loadSupplierProfile() {
               <span style="font-size:0.9rem;font-weight:600;color:var(--color-text-main);">${ratingDisplay}</span>
             </div>
           </div>
+
+          ${waLink ? `
+          <div class="supplier-header-actions" style="margin-left:auto;">
+            <a href="${escapeHtml(waLink)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp-contact" style="padding:10px 18px;font-size:0.9rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              Contactar por WhatsApp
+            </a>
+          </div>` : ""}
         </div>
 
         <hr style="width:100%;border:0;border-top:1px solid var(--color-border-subtle);margin:20px 0;" />
@@ -307,20 +314,20 @@ async function loadSupplierProfile() {
             </svg>
             <span><b>Horario:</b> ${escapeHtml(supplier.operating_hours)}</span>
           </div>` : ""}
-          ${supplier.phone ? `
+          ${phone ? `
           <div style="display:flex;align-items:center;gap:8px;color:var(--color-text-muted);font-size:0.9rem;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
-            <span><b>Teléfono:</b> ${escapeHtml(supplier.phone)}</span>
+            <span><b>Teléfono:</b> ${escapeHtml(phone)}</span>
           </div>` : ""}
-          ${supplier.email ? `
+          ${email ? `
           <div style="display:flex;align-items:center;gap:8px;color:var(--color-text-muted);font-size:0.9rem;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="2" y="4" width="20" height="16" rx="2"/>
               <path d="m22 7-10 7L2 7"/>
             </svg>
-            <span><b>Correo:</b> ${escapeHtml(supplier.email)}</span>
+            <span><b>Correo:</b> ${escapeHtml(email)}</span>
           </div>` : ""}
         </div>
 
@@ -333,15 +340,19 @@ async function loadSupplierProfile() {
         </div>` : ""}
       </article>
 
-      <!-- Sección de Ratings y Comentarios (se llenan dinámicamente) -->
-      <div id="ratingSection"></div>
-      <div id="commentsSection"></div>
+      <!-- SECCIÓN 1: Catálogo de Productos (Prioridad Principal) -->
+      <div id="productsSection"></div>
 
-      ${productsHtml}
+      <!-- SECCIÓN 2: Calificaciones -->
+      <div id="ratingSection"></div>
+
+      <!-- SECCIÓN 3: Comentarios -->
+      <div id="commentsSection"></div>
     `;
 
-    // Cargar ratings y comentarios en paralelo
+    // Cargar Catálogo, Ratings y Comentarios en paralelo
     await Promise.allSettled([
+      loadProductsSection(supplier, phone),
       loadRatingSection(),
       loadCommentsSection(),
     ]);
@@ -358,6 +369,365 @@ async function loadSupplierProfile() {
       </div>`;
     document.getElementById("retryProfileBtn")?.addEventListener("click", loadSupplierProfile);
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CATÁLOGO DE PRODUCTOS (VISTA PÚBLICA)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Carga y renderiza el catálogo de productos del proveedor.
+ * @param {object} supplier
+ * @param {string|null} phone - Teléfono de contacto
+ */
+async function loadProductsSection(supplier, phone) {
+  const container = document.getElementById("productsSection");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="supplier-catalog-section">
+      <div class="supplier-catalog-header">
+        <h2 class="supplier-catalog-title">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+          Catálogo de Productos
+        </h2>
+      </div>
+      <div class="product-pub-grid">
+        ${Array.from({ length: 4 }, () => `<div class="skeleton-prod-card"><div class="skeleton-line skeleton-prod-img"></div><div class="skeleton-prod-body"><div class="skeleton-line" style="width:60%;height:14px;"></div><div class="skeleton-line" style="width:40%;height:10px;"></div></div></div>`).join("")}
+      </div>
+    </div>`;
+
+  try {
+    const prodRes = await homeApi.getProductsBySupplier(supplierId);
+    const products = prodRes?.data ?? [];
+
+    if (products.length === 0) {
+      container.innerHTML = `
+        <div class="supplier-catalog-section">
+          <div class="supplier-catalog-header">
+            <h2 class="supplier-catalog-title">Catálogo de Productos</h2>
+          </div>
+          <div style="background:var(--color-bg-card);border:1px dashed var(--color-border-input);border-radius:var(--radius-large);padding:40px 20px;text-align:center;color:var(--color-text-muted);">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:12px;opacity:0.6;">
+              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            <h3 style="margin:0 0 6px;color:var(--color-text-main);font-size:1.1rem;">Este proveedor aún no tiene productos publicados</h3>
+            <p style="margin:0;font-size:0.88rem;">Vuelve a consultar más tarde para explorar sus ofertas.</p>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const cardsHtml = products.map((p) => buildProductCardHtml(p)).join("");
+
+    container.innerHTML = `
+      <div class="supplier-catalog-section">
+        <div class="supplier-catalog-header">
+          <h2 class="supplier-catalog-title">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            Catálogo de Productos
+            <span class="supplier-catalog-count">${products.length}</span>
+          </h2>
+        </div>
+        <div class="product-pub-grid">
+          ${cardsHtml}
+        </div>
+      </div>`;
+
+    // Eventos para abrir el modal de detalle
+    container.querySelectorAll("[data-open-product-modal]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openProductDetailModal(btn.dataset.openProductModal, supplier, phone);
+      });
+    });
+
+    container.querySelectorAll(".product-pub-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        openProductDetailModal(card.dataset.productId, supplier, phone);
+      });
+    });
+
+  } catch (err) {
+    console.error("[supplier.js] Error al cargar productos:", err);
+    container.innerHTML = `
+      <div class="supplier-catalog-section">
+        <div style="background:var(--color-bg-card);border:1px solid var(--color-border-input);border-radius:var(--radius-large);padding:24px;text-align:center;color:var(--color-text-muted);">
+          <p style="margin:0 0 12px;">No se pudieron cargar los productos de este proveedor.</p>
+          <button class="btn btn-light-subtle" id="retryProductsBtn">Reintentar</button>
+        </div>
+      </div>`;
+    document.getElementById("retryProductsBtn")?.addEventListener("click", () => loadProductsSection(supplier, phone));
+  }
+}
+
+/**
+ * Construye el HTML de la tarjeta de un producto público.
+ * @param {object} p - Producto
+ * @returns {string}
+ */
+function buildProductCardHtml(p) {
+  const imgUrl = p.primary_image_url || p.image_url;
+  const statusKey = (p.status ?? "activo").toLowerCase();
+  const statusLabel = { activo: "Disponible", disponible: "Disponible", agotado: "Agotado", no_disponible: "No disponible", inactivo: "Inactivo" }[statusKey] ?? statusKey;
+
+  const imageBlock = imgUrl ? `
+    <img
+      src="${escapeHtml(imgUrl)}"
+      alt="${escapeHtml(p.name)}"
+      class="product-pub-img"
+      onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'product-pub-placeholder\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><rect x=\\'3\\' y=\\'3\\' width=\\'18\\' height=\\'18\\' rx=\\'2\\'/><circle cx=\\'8.5\\' cy=\\'8.5\\' r=\\'1.5\\'/><polyline points=\\'21 15 16 10 5 21\\'/></svg><span>Imagen no disponible</span></div>';"
+    />
+  ` : `
+    <div class="product-pub-placeholder">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>Sin imagen</span>
+    </div>
+  `;
+
+  return `
+    <article class="product-pub-card" data-product-id="${p.id}">
+      <div class="product-pub-img-wrap">
+        ${imageBlock}
+        <span class="product-pub-badge product-pub-badge--${statusKey}">
+          ${escapeHtml(statusLabel)}
+        </span>
+      </div>
+
+      <div class="product-pub-body">
+        <span class="product-pub-category">${escapeHtml(p.category_name ?? "Producto")}</span>
+        <h3 class="product-pub-title">${escapeHtml(p.name)}</h3>
+        ${p.description ? `<p class="product-pub-desc">${escapeHtml(p.description)}</p>` : ""}
+
+        <div class="product-pub-meta">
+          <div>
+            <span class="product-pub-price">${formatPrice(p.price, p.currency)}</span>
+            ${p.unit_of_measure ? `<span class="product-pub-unit">/ ${escapeHtml(p.unit_of_measure)}</span>` : ""}
+          </div>
+          ${p.stock !== undefined ? `<span class="product-pub-stock">Stock: <b>${p.stock}</b></span>` : ""}
+        </div>
+      </div>
+
+      <div class="product-pub-footer">
+        <button class="btn btn-green-solid product-pub-btn-detail" data-open-product-modal="${p.id}">
+          Ver detalle del producto
+        </button>
+      </div>
+    </article>`;
+}
+
+/**
+ * Abre el modal con la vista detallada de un producto.
+ * @param {string} productId
+ * @param {object} supplier
+ * @param {string|null} phone
+ */
+async function openProductDetailModal(productId, supplier, phone) {
+  // Eliminar modal anterior si existe
+  document.getElementById("productDetailModalOverlay")?.remove();
+
+  // Overlay con loader mientras obtiene datos completos del producto
+  const overlay = document.createElement("div");
+  overlay.id = "productDetailModalOverlay";
+  overlay.className = "product-modal-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+
+  overlay.innerHTML = `
+    <div class="product-detail-modal" style="padding:48px 24px;text-align:center;align-items:center;">
+      <div class="spinner-inline" style="width:36px;height:36px;border-width:3px;border-top-color:var(--color-primary-green);margin-bottom:16px;"></div>
+      <p style="color:var(--color-text-muted);margin:0;">Cargando detalle del producto...</p>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  try {
+    const res = await homeApi.getProductById(productId);
+    const product = res?.data ?? res;
+
+    if (!product) {
+      overlay.querySelector(".product-detail-modal").innerHTML = `
+        <p style="color:var(--color-text-main);font-weight:700;margin-bottom:16px;">Producto no encontrado</p>
+        <button class="btn btn-light-subtle" id="closeDetailModalBtn">Cerrar</button>`;
+      document.getElementById("closeDetailModalBtn")?.addEventListener("click", () => overlay.remove());
+      return;
+    }
+
+    renderProductDetailModalContent(overlay, product, supplier, phone);
+
+  } catch (err) {
+    console.error("[supplier.js] Error al cargar detalle del producto:", err);
+    overlay.querySelector(".product-detail-modal").innerHTML = `
+      <p style="color:var(--color-text-muted);margin-bottom:16px;">No se pudo cargar el detalle del producto.</p>
+      <button class="btn btn-light-subtle" id="closeDetailModalBtn">Cerrar</button>`;
+    document.getElementById("closeDetailModalBtn")?.addEventListener("click", () => overlay.remove());
+  }
+}
+
+/**
+ * Renderiza el contenido interno del modal de detalle de producto.
+ * @param {HTMLElement} overlay
+ * @param {object} product
+ * @param {object} supplier
+ * @param {string|null} phone
+ */
+function renderProductDetailModalContent(overlay, product, supplier, phone) {
+  const images = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : (product.primary_image_url || product.image_url
+      ? [{ id: "primary", image_url: product.primary_image_url || product.image_url }]
+      : []);
+
+  const activeImgUrl = images.length > 0 ? images[0].image_url : null;
+
+  // Normalizar número de WhatsApp
+  const cleanPhone = phone ? String(phone).replace(/[^\d+]/g, "") : "";
+  const waNumber = cleanPhone.startsWith("+") ? cleanPhone.slice(1) : cleanPhone;
+  const msg = `Hola, me interesa el producto "${product.name}" que vi en ProveeLink.`;
+  const waLink = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}` : null;
+
+  const mainImageHtml = activeImgUrl ? `
+    <img id="detailMainImg" src="${escapeHtml(activeImgUrl)}" alt="${escapeHtml(product.name)}" />
+  ` : `
+    <div class="product-pub-placeholder">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>Imagen no disponible</span>
+    </div>
+  `;
+
+  const thumbsHtml = images.length > 1 ? `
+    <div class="product-gallery-thumbs">
+      ${images.map((img, i) => `
+        <div class="product-gallery-thumb ${i === 0 ? "active" : ""}" data-thumb-src="${escapeHtml(img.image_url)}">
+          <img src="${escapeHtml(img.image_url)}" alt="Miniatura ${i + 1}" />
+        </div>
+      `).join("")}
+    </div>
+  ` : "";
+
+  overlay.innerHTML = `
+    <div class="product-detail-modal">
+      <button class="product-detail-close-btn" id="closeDetailModalXBtn" aria-label="Cerrar ventana modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="product-detail-grid">
+        <!-- Columna Izquierda: Galería -->
+        <div class="product-gallery-wrap">
+          <div class="product-gallery-main">
+            ${mainImageHtml}
+          </div>
+          ${thumbsHtml}
+        </div>
+
+        <!-- Columna Derecha: Información y Contacto -->
+        <div class="product-info-column">
+          <span class="product-info-category">${escapeHtml(product.category_name ?? "Producto")}</span>
+          <h2 class="product-info-title">${escapeHtml(product.name)}</h2>
+
+          <div class="product-info-price-row">
+            <span class="product-info-price">${formatPrice(product.price, product.currency)}</span>
+            ${product.unit_of_measure ? `<span class="product-info-unit">por ${escapeHtml(product.unit_of_measure)}</span>` : ""}
+          </div>
+
+          <div class="product-info-specs">
+            <div class="product-spec-item">
+              <span class="product-spec-label">Marca</span>
+              <span class="product-spec-value">${escapeHtml(product.brand || "—")}</span>
+            </div>
+            ${product.model ? `
+            <div class="product-spec-item">
+              <span class="product-spec-label">Modelo</span>
+              <span class="product-spec-value">${escapeHtml(product.model)}</span>
+            </div>` : ""}
+            <div class="product-spec-item">
+              <span class="product-spec-label">Disponibilidad</span>
+              <span class="product-spec-value">${escapeHtml(product.status ?? "activo")}</span>
+            </div>
+            <div class="product-spec-item">
+              <span class="product-spec-label">Stock en inventario</span>
+              <span class="product-spec-value">${product.stock ?? 0} unidades</span>
+            </div>
+          </div>
+
+          ${product.description ? `
+          <div>
+            <h3 class="product-info-desc-title">Descripción</h3>
+            <p class="product-info-desc">${escapeHtml(product.description)}</p>
+          </div>` : ""}
+
+          <!-- Bloque Proveedor -->
+          <div class="product-supplier-card">
+            <div class="product-supplier-avatar">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+              </svg>
+            </div>
+            <div class="product-supplier-info">
+              <p class="product-supplier-name">${escapeHtml(supplier.company_name ?? "Proveedor")}</p>
+              <p class="product-supplier-type">${escapeHtml(supplier.supplier_type ?? "Proveedor Registrado")}</p>
+            </div>
+          </div>
+
+          <!-- Acciones de Contacto (WhatsApp prioritario) -->
+          <div class="product-contact-actions">
+            ${waLink ? `
+            <a href="${escapeHtml(waLink)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp-contact">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              Contactar por WhatsApp
+            </a>` : `
+            <button class="btn btn-light-subtle" disabled style="width:100%;">
+              Teléfono de contacto no registrado
+            </button>`}
+
+            <button class="btn-platform-contact" title="Funcionalidad disponible en una versión futura" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Contactar mediante la web (Próximamente)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Eventos de cierre de modal
+  document.getElementById("closeDetailModalXBtn")?.addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  // Eventos de miniaturas de galería
+  overlay.querySelectorAll("[data-thumb-src]").forEach((thumb) => {
+    thumb.addEventListener("click", () => {
+      const src = thumb.dataset.thumbSrc;
+      const mainImg = overlay.querySelector("#detailMainImg");
+      if (mainImg) mainImg.src = src;
+
+      overlay.querySelectorAll(".product-gallery-thumb").forEach((t) => t.classList.remove("active"));
+      thumb.classList.add("active");
+    });
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -998,35 +1368,41 @@ async function handleDeleteComment(commentId) {
   const card = document.getElementById(`comment-${commentId}`);
   if (!card) return;
 
-  if (!window.confirm("¿Seguro que quieres eliminar este comentario? Esta acción es irreversible.")) return;
+  notify.confirm({
+    title: "Eliminar comentario",
+    message: "¿Seguro que quieres eliminar este comentario? Esta acción es irreversible.",
+    confirmText: "Eliminar",
+    cancelText: "Cancelar",
+    onConfirm: async () => {
+      const deleteBtn = card.querySelector(`[data-delete-comment="${commentId}"]`);
+      const editBtn = card.querySelector(`[data-edit-comment="${commentId}"]`);
+      if (deleteBtn) { deleteBtn.disabled = true; deleteBtn.textContent = "Eliminando…"; }
+      if (editBtn) editBtn.disabled = true;
 
-  const deleteBtn = card.querySelector(`[data-delete-comment="${commentId}"]`);
-  const editBtn = card.querySelector(`[data-edit-comment="${commentId}"]`);
-  if (deleteBtn) { deleteBtn.disabled = true; deleteBtn.textContent = "Eliminando…"; }
-  if (editBtn) editBtn.disabled = true;
+      try {
+        await commentApi.deleteComment(commentId);
+        notify.success("Comentario eliminado.");
 
-  try {
-    await commentApi.deleteComment(commentId);
-    notify.success("Comentario eliminado.");
+        // Eliminar de la lista local y re-renderizar
+        loadedComments = loadedComments.filter((c) => c.id !== commentId);
+        totalComments = Math.max(0, totalComments - 1);
 
-    // Eliminar de la lista local y re-renderizar
-    loadedComments = loadedComments.filter((c) => c.id !== commentId);
-    totalComments = Math.max(0, totalComments - 1);
-
-    const listEl = document.getElementById("commentsList");
-    if (listEl) renderCommentsList(listEl);
-    updateCommentsCountBadge();
-  } catch (err) {
-    console.error("[supplier.js] Error al eliminar comentario:", err);
-    const msg = err.status === 403
-      ? "No tienes permiso para eliminar este comentario."
-      : err.status === 404
-        ? "El comentario ya no existe."
-        : "No se pudo eliminar el comentario.";
-    notify.error(msg);
-    if (deleteBtn) { deleteBtn.disabled = false; deleteBtn.textContent = "Eliminar"; }
-    if (editBtn) editBtn.disabled = false;
-  }
+        const listEl = document.getElementById("commentsList");
+        if (listEl) renderCommentsList(listEl);
+        updateCommentsCountBadge();
+      } catch (err) {
+        console.error("[supplier.js] Error al eliminar comentario:", err);
+        const msg = err.status === 403
+          ? "No tienes permiso para eliminar este comentario."
+          : err.status === 404
+            ? "El comentario ya no existe."
+            : "No se pudo eliminar el comentario.";
+        notify.error(msg);
+        if (deleteBtn) { deleteBtn.disabled = false; deleteBtn.textContent = "Eliminar"; }
+        if (editBtn) editBtn.disabled = false;
+      }
+    },
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

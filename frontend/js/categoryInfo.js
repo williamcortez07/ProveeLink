@@ -107,7 +107,7 @@ function createProviderCard(supplier) {
         Cobertura ${coverage}
       </p>` : ""}
     </div>
-    <a href="../pages/supplier/supplier.html?id=${encodeURIComponent(supplier.id)}" class="btn btn-outline provider-cta">
+    <a href="supplier/supplier.html?id=${encodeURIComponent(supplier.id)}" class="btn btn-outline provider-cta">
       Ver perfil
     </a>
   `;

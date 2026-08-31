@@ -250,6 +250,61 @@ function dismissToast(toast) {
   toast.addEventListener("animationend", () => toast.remove(), { once: true });
 }
 
+/** Escapa HTML para los mensajes del modal de confirmación */
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Muestra un modal de confirmación elegante sin usar window.confirm nativo.
+ * @param {{ title?: string, message: string, confirmText?: string, cancelText?: string, onConfirm: () => void|Promise<void> }} options
+ */
+function showConfirm({ title = "Confirmar acción", message, confirmText = "Confirmar", cancelText = "Cancelar", onConfirm }) {
+  document.getElementById("confirm-modal-overlay")?.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "confirm-modal-overlay";
+  overlay.className = "product-modal-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+
+  overlay.innerHTML = `
+    <div style="background:var(--color-bg-card, #ffffff); border-radius:16px; padding:24px; max-width:400px; width:100%; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); border:1px solid var(--color-border-input, #e2e8f0); text-align:center; animation: modalFadeIn 0.2s ease;">
+      <div style="width:48px; height:48px; border-radius:50%; background:rgba(239,68,68,0.1); color:#ef4444; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <h3 style="font-size:1.1rem; font-weight:700; color:var(--color-text-main, #0f172a); margin:0 0 8px;">${escapeHtml(title)}</h3>
+      <p style="font-size:0.88rem; color:var(--color-text-muted, #64748b); margin:0 0 20px; line-height:1.5;">${escapeHtml(message)}</p>
+      <div style="display:flex; gap:10px;">
+        <button id="confirmCancelBtn" class="btn btn-light-subtle" style="flex:1; padding:10px 14px; font-size:0.88rem; border-radius:10px;">${escapeHtml(cancelText)}</button>
+        <button id="confirmOkBtn" class="btn" style="flex:1; padding:10px 14px; font-size:0.88rem; border-radius:10px; background:#ef4444; color:#fff; border:none; font-weight:600;">${escapeHtml(confirmText)}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector("#confirmCancelBtn")?.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+
+  overlay.querySelector("#confirmOkBtn")?.addEventListener("click", async () => {
+    close();
+    if (typeof onConfirm === "function") {
+      await onConfirm();
+    }
+  });
+}
+
 /**
  * Servicio público de notificaciones.
  * @namespace notify
@@ -265,7 +320,10 @@ export const notify = {
   warn: (msg, ms) => showToast(msg, "warning", ms),
   /** @param {string} msg @param {number} [ms] */
   info: (msg, ms) => showToast(msg, "info", ms),
+  /** Muestra un modal de confirmación sin alerts feos nativos */
+  confirm: (opts) => showConfirm(opts),
 };
 
 export const NotificationManager = notify;
+
 

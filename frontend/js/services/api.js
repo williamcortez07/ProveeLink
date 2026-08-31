@@ -25,7 +25,9 @@ const HOME_ENDPOINTS = Object.freeze({
   CATEGORIES: `${API_BASE_URL}/categories`,
   SEARCH_SUPPLIERS: `${API_BASE_URL}/suppliers/search`,
   SUPPLIER_PROFILE: (id) => `${API_BASE_URL}/suppliers/${id}`,
+  COMPANY_BY_ID: (id) => `${API_BASE_URL}/companies/${id}`,
   MY_PRODUCTS: `${API_BASE_URL}/products/mine`,
+  PRODUCT_BY_ID: (id) => `${API_BASE_URL}/products/${id}`,
   ADD_PRODUCT: `${API_BASE_URL}/products`,
   UPDATE_PRODUCT: (id) => `${API_BASE_URL}/products/${id}`,
   DELETE_PRODUCT: (id) => `${API_BASE_URL}/products/${id}`,
@@ -427,6 +429,24 @@ export const homeApi = {
   },
 
   /**
+   * Obtiene la información de una empresa por ID.
+   * @param {string} companyId
+   * @returns {Promise<object>}
+   */
+  getCompanyById(companyId) {
+    return get(HOME_ENDPOINTS.COMPANY_BY_ID(companyId));
+  },
+
+  /**
+   * Obtiene un producto detallado por ID (incluye array de imágenes completo).
+   * @param {string} productId
+   * @returns {Promise<object>}
+   */
+  getProductById(productId) {
+    return get(HOME_ENDPOINTS.PRODUCT_BY_ID(productId));
+  },
+
+  /**
    * Obtiene los productos del proveedor autenticado (dashboard del proveedor).
    * Usa GET /products/mine — el backend deriva supplier_id del JWT.
    * No expone ni acepta un supplier_id desde el cliente.
@@ -475,14 +495,6 @@ export const homeApi = {
   },
 
   // ── Proveedor (ROLES.SUPPLIER) ─────────────────────────────────────────────
-
-  /**
-   * Obtiene los productos propios del proveedor autenticado.
-   * @returns {Promise<Array<object>>}
-   */
-  getMyProducts() {
-    return get(HOME_ENDPOINTS.MY_PRODUCTS);
-  },
 
   /**
    * Crea un nuevo producto.

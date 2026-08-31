@@ -85,13 +85,13 @@ function statusBadgeClass(status) {
 
 async function initAccessGuard() {
   if (!TokenManager.isAuthenticated()) {
-    window.location.href = "/pages/login.html";
+    window.location.href = "../login.html";
     return false;
   }
 
   const user = TokenManager.getUser();
   if (!user || !user.id) {
-    window.location.href = "/pages/login.html";
+    window.location.href = "../login.html";
     return false;
   }
   state.user = user;
@@ -99,14 +99,14 @@ async function initAccessGuard() {
   try {
     const company = await companyService.getByUserId(user.id);
     if (!company) {
-      window.location.href = "/pages/supplier/createSupplier.html";
+      window.location.href = "createSupplier.html";
       return false;
     }
     state.company = company;
 
     const supplier = await supplierService.getByCompanyId(company.id);
     if (!supplier) {
-      window.location.href = "/pages/supplier/createSupplier.html";
+      window.location.href = "createSupplier.html";
       return false;
     }
     state.supplier = supplier;

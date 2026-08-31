@@ -398,39 +398,46 @@ function updateLoadMoreBtn(loading) {
  * @param {string} ratingId
  */
 async function handleDeleteRating(ratingId) {
-  if (!window.confirm("¿Quieres eliminar esta calificación? No se puede deshacer.")) return;
-
   const card = document.getElementById(`fav-rating-${ratingId}`);
   const deleteBtn = card?.querySelector(`[data-delete-rating="${ratingId}"]`);
-  if (deleteBtn) { deleteBtn.disabled = true; deleteBtn.textContent = "Quitando…"; }
 
-  try {
-    await ratingApi.deleteRating(ratingId);
-    notify.success("Calificación eliminada.");
+  notify.confirm({
+    title: "Quitar calificación",
+    message: "¿Quieres eliminar esta calificación? No se puede deshacer.",
+    confirmText: "Quitar",
+    cancelText: "Cancelar",
+    onConfirm: async () => {
+      if (deleteBtn) { deleteBtn.disabled = true; deleteBtn.textContent = "Quitando…"; }
 
-    loadedRatings = loadedRatings.filter((r) => r.id !== ratingId);
-    totalFavorites = Math.max(0, totalFavorites - 1);
+      try {
+        await ratingApi.deleteRating(ratingId);
+        notify.success("Calificación eliminada.");
 
-    // Animar salida de la tarjeta
-    if (card) {
-      card.style.transition = "opacity 0.3s, transform 0.3s";
-      card.style.opacity = "0";
-      card.style.transform = "scale(0.95)";
-      setTimeout(() => {
-        const grid = document.getElementById("favoritesGrid");
-        if (grid) renderFavoritesList(grid, false);
-      }, 300);
-    }
-  } catch (err) {
-    console.error("[favorites.js] Error al eliminar rating:", err);
-    const msg = err.status === 403
-      ? "No tienes permiso para eliminar esta calificación."
-      : err.status === 404
-        ? "Esta calificación ya no existe."
-        : "No se pudo eliminar. Intenta de nuevo.";
-    notify.error(msg);
-    if (deleteBtn) { deleteBtn.disabled = false; deleteBtn.textContent = "Quitar"; }
-  }
+        loadedRatings = loadedRatings.filter((r) => r.id !== ratingId);
+        totalFavorites = Math.max(0, totalFavorites - 1);
+
+        // Animar salida de la tarjeta
+        if (card) {
+          card.style.transition = "opacity 0.3s, transform 0.3s";
+          card.style.opacity = "0";
+          card.style.transform = "scale(0.95)";
+          setTimeout(() => {
+            const grid = document.getElementById("favoritesGrid");
+            if (grid) renderFavoritesList(grid, false);
+          }, 300);
+        }
+      } catch (err) {
+        console.error("[favorites.js] Error al eliminar rating:", err);
+        const msg = err.status === 403
+          ? "No tienes permiso para eliminar esta calificación."
+          : err.status === 404
+            ? "Esta calificación ya no existe."
+            : "No se pudo eliminar. Intenta de nuevo.";
+        notify.error(msg);
+        if (deleteBtn) { deleteBtn.disabled = false; deleteBtn.textContent = "Quitar"; }
+      }
+    },
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
