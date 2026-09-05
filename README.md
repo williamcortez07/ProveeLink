@@ -85,8 +85,11 @@ El sistema está estructurado modularmente en torno a los siguientes dominios fu
 | **Suppliers** | Ficha detallada de proveedores nacionales, rubros de atención, catálogo asociado y certificación comercial. |
 | **Products** | Gestión del catálogo de productos, materias primas y servicios con precios, especificaciones técnicas e imágenes subidas a Supabase. |
 | **Categories** | Taxonomía y clasificación jerárquica de rubros comerciales y categorías de productos. |
-| **Comments** | Sistema de comentarios, valoraciones y retroalimentación comercial entre empresas. |
+| **Comments** | Sistema de comentarios y retroalimentación comercial entre empresas y clientes. |
+| **Ratings** | Calificación cuantitativa de proveedores y productos; cálculo de puntuaciones agregadas. |
 | **Favorites** | Marcado y seguimiento de proveedores y productos preferidos por parte de los clientes. |
+| **Verification** | Flujo de solicitud, revisión y aprobación de la certificación comercial de proveedores por el administrador. |
+| **Admin** | Panel de gestión del sistema: usuarios, administradores, categorías, solicitudes y métricas globales. |
 | **Dashboard** | Panel interactivo de métricas y resumen de actividad según el rol del usuario autenticado. |
 
 ---
@@ -133,11 +136,13 @@ La capa frontend sigue un enfoque **Modular Basado en Componentes y Servicios**,
 
 ### Componentes Principales
 
-- **Router Client-Side (`js/services/routes.js`):** Intercepta la navegación, valida los permisos del rol en sesión y carga las vistas de forma dinámica.
+- **Router Client-Side (`js/services/routes.js`):** Intercepta la navegación, valida los permisos del rol en sesión, gestiona favicons por tipo de vista y carga las páginas de forma dinámica.
 - **Service Layer (`js/services/api.js`):** Cliente HTTP centralizado con manejo automático de headers de autorización JWT, reintentos e intercepción de errores.
+- **Domain Services (`js/services/companyService.js`, `supplierService.js`, `authService.js`):** Capas de servicio especializadas que encapsulan las llamadas API de cada dominio de negocio.
 - **Supabase Integration (`js/services/supabase.js`):** Cliente de almacenamiento remoto para la subida asíncrona de archivos multimedia desde la UI.
 - **Notification Manager (`js/services/notificationService.js`):** Sistema global de notificaciones, toasts y modales de confirmación interactivos.
-- **Design Tokens & Core UI (`css/`):** Variables CSS reutilizables para colores, tipografías, sombreados, animaciones y diseño responsivo *mobile-first*.
+- **PWA Manager (`js/pwa.js`):** Registro del Service Worker, detección de conectividad en tiempo real y notificaciones de estado online/offline.
+- **Design Tokens & Core UI (`css/base/globals.css`):** Variables CSS globales para colores, tipografías, sombras, animaciones y diseño responsivo *mobile-first*, con soporte para Light Mode y Dark Mode.
 
 ---
 
@@ -233,6 +238,11 @@ ProveeLink/
 │   │   │   ├── errorHandler.js           # Manejador global de errores
 │   │   │   └── validateRequest.js        # Middleware de validación con Zod
 │   │   ├── modules/
+│   │   │   ├── admin/                    # Módulo de Administración del sistema
+│   │   │   │   ├── adminController.js
+│   │   │   │   ├── adminRepository.js
+│   │   │   │   ├── adminRoutes.js
+│   │   │   │   └── adminService.js
 │   │   │   ├── auth/                     # Módulo de Autenticación y OTP
 │   │   │   │   ├── auth.controller.js
 │   │   │   │   ├── auth.repository.js
@@ -243,9 +253,11 @@ ProveeLink/
 │   │   │   ├── comments/                 # Módulo de Comentarios
 │   │   │   ├── companies/                # Módulo de Empresas
 │   │   │   ├── products/                 # Módulo de Productos
+│   │   │   ├── ratings/                  # Módulo de Calificaciones y Reseñas
 │   │   │   ├── roles/                    # Módulo de Roles
 │   │   │   ├── suppliers/                # Módulo de Proveedores
-│   │   │   └── users/                    # Módulo de Usuarios
+│   │   │   ├── users/                    # Módulo de Usuarios
+│   │   │   └── verification/             # Módulo de Verificación de Proveedores
 │   │   ├── utils/
 │   │   │   ├── AppError.js               # Clase personalizada para errores operacionalizables
 │   │   │   ├── asyncWrapper.js           # Wrapper para captura de promesas en controladores
@@ -259,39 +271,118 @@ ProveeLink/
 │   └── package-lock.json
 │
 ├── frontend/
-│   ├── assets/                           # Recursos gráficos, íconos y logotipos
-│   ├── css/                              # Hoja de estilos principal y módulos CSS
+│   ├── assets/
+│   │   └── icons/                        # Recursos gráficos, íconos y logotipos
+│   │       ├── baner.ico                 # Favicon general de la aplicación
+│   │       ├── baner.png                 # Ícono principal PWA (manifest + apple-touch-icon)
+│   │       ├── proteger.ico              # Favicon exclusivo de vistas de autenticación
+│   │       ├── logoProveeLink.png        # Logotipo completo de la plataforma
+│   │       ├── offline-placeholder.svg   # Imagen de respaldo para modo sin conexión
+│   │       └── *.svg                     # Íconos de categorías (SVG individuales)
+│   ├── css/
+│   │   ├── admin/
+│   │   │   └── admin.css                 # Estilos del panel de administración (Light + Dark Mode)
+│   │   ├── base/
+│   │   │   └── globals.css               # Variables CSS globales (Design Tokens), reset y tipografía
+│   │   ├── components/
+│   │   │   ├── footer.css                # Estilos del componente Footer
+│   │   │   ├── login.css                 # Estilos de formularios de autenticación (Login / Registro)
+│   │   │   ├── navbar.css                # Estilos del componente Navbar
+│   │   │   └── sidebar.css               # Estilos del componente Sidebar de navegación
+│   │   └── layout/
+│   │       ├── company/
+│   │       │   ├── company.css           # Layout del panel de empresa
+│   │       │   └── createCompany.css     # Layout del formulario de creación de empresa
+│   │       ├── customer/
+│   │       │   └── customer.css          # Layout de vistas del cliente/comprador
+│   │       ├── supplier/
+│   │       │   ├── createSupplier.css    # Layout del formulario de registro de proveedor
+│   │       │   ├── homeSupplier.css      # Layout del dashboard del proveedor
+│   │       │   ├── supplier-catalog.css  # Layout del catálogo público de productos
+│   │       │   ├── supplier-comments-ratings.css  # Layout de reseñas y calificaciones
+│   │       │   └── supplier.css          # Layout del perfil público del proveedor
+│   │       ├── favorites.css             # Layout de la vista de favoritos
+│   │       ├── home.css                  # Layout del panel principal / Dashboard
+│   │       └── profile.css               # Layout de la vista de gestión de perfil
 │   ├── js/
-│   │   ├── services/
-│   │   │   ├── api.js                    # Cliente API Fetch reutilizable
-│   │   │   ├── authService.js            # Servicio cliente de autenticación
-│   │   │   ├── notificationService.js    # Notificaciones UI (Toasts / Modales)
-│   │   │   ├── routes.js                 # Enrutador cliente y protección de páginas
+│   │   ├── admin/                        # Controladores JS del panel de administración
+│   │   │   ├── adminApi.js               # Cliente API específico para operaciones de admin
+│   │   │   ├── adminAuth.js              # Control de autenticación y sesión de administrador
+│   │   │   ├── administrators.js         # Gestión de administradores
+│   │   │   ├── categories.js             # Gestión de categorías (admin)
+│   │   │   ├── dashboard.js              # Lógica del dashboard de administración
+│   │   │   ├── login.js                  # Formulario de inicio de sesión (admin)
+│   │   │   ├── users.js                  # Gestión de usuarios del sistema
+│   │   │   ├── verificationRequests.js   # Gestión de solicitudes de verificación
+│   │   │   └── verifications.js          # Revisión y aprobación de verificaciones
+│   │   ├── company/                      # Controladores JS del módulo de empresas
+│   │   │   ├── company.js                # Vista y edición del perfil de empresa
+│   │   │   └── createCompany.js          # Formulario de creación/registro de empresa
+│   │   ├── customer/                     # Controladores JS del módulo de cliente/comprador
+│   │   │   └── customer.js               # Lógica del directorio y búsqueda de proveedores
+│   │   ├── services/                     # Capa de servicios y comunicación con la API
+│   │   │   ├── api.js                    # Cliente HTTP Fetch centralizado con JWT automático
+│   │   │   ├── authService.js            # Servicio de autenticación (login, registro, OTP)
+│   │   │   ├── companyService.js         # Servicio de operaciones de empresa
+│   │   │   ├── notificationService.js    # Notificaciones UI (Toasts y Modales)
+│   │   │   ├── routes.js                 # Enrutador cliente, RBAC y gestión de favicons
 │   │   │   ├── storageService.js         # Abstracción de LocalStorage/SessionStorage
-│   │   │   └── supabase.js               # Integración del SDK de Supabase Storage
-│   │   ├── company/                          # Controladores JS para módulo de empresas
-│   │   ├── customer/                         # Controladores JS para módulo de cliente
-│   │   ├── supplier/                         # Controladores JS para módulo de proveedor
-│   │   ├── utils/                            # Funciones auxiliares del cliente
-│   │   ├── auth.js                           # Control de formularios de Auth y OTP
-│   │   ├── categories.js                     # Renderizado de categorías
-│   │   ├── home.js                           # Lógica del dashboard y pantalla principal
-│   │   └── profile.js                        # Gestión del perfil de usuario
+│   │   │   ├── supabase.js               # Integración del SDK de Supabase Storage
+│   │   │   └── supplierService.js        # Servicio de operaciones de proveedor
+│   │   ├── supplier/                     # Controladores JS del módulo de proveedores
+│   │   │   ├── createSupplier.js         # Formulario de registro del perfil de proveedor
+│   │   │   ├── homeSupplier.js           # Dashboard del proveedor autenticado
+│   │   │   ├── supplier.js               # Perfil público y catálogo del proveedor
+│   │   │   └── verification.js           # Proceso de solicitud de verificación comercial
+│   │   ├── utils/                        # Funciones auxiliares reutilizables del cliente
+│   │   │   ├── footer.js                 # Renderizado dinámico del Footer
+│   │   │   ├── navbar.js                 # Renderizado dinámico del Navbar
+│   │   │   ├── sidebar.js                # Renderizado dinámico del Sidebar
+│   │   │   └── verifiedBadge.js          # Componente de insignia de proveedor verificado
+│   │   ├── auth.js                       # Controlador de formularios de Auth/OTP y registro
+│   │   ├── categories.js                 # Renderizado del directorio de categorías
+│   │   ├── categoryInfo.js               # Vista detallada de categoría con proveedores
+│   │   ├── favorites.js                  # Gestión de proveedores y productos favoritos
+│   │   ├── home.js                       # Lógica del dashboard principal por rol
+│   │   ├── profile.js                    # Gestión del perfil de usuario autenticado
+│   │   └── pwa.js                        # Registro del Service Worker y gestión de conectividad
 │   ├── pages/
-│   │   ├── company/                          # Vistas de administración de empresas
-│   │   ├── components/                       # Componentes HTML parciales (Sidebar, Header)
-│   │   ├── supplier/                         # Vistas de gestión para proveedores
-│   │   ├── category.html                     # Vista de directorio de categorías
-│   │   ├── categoryInfo.html                 # Vista detallada de categoría
-│   │   ├── favorites.html                    # Vista de elementos guardados
-│   │   ├── home.html                         # Vista del panel principal / Dashboard
-│   │   └── profile.html                      # Vista de gestión de perfil
+│   │   ├── admin/                        # Vistas HTML del panel de administración
+│   │   │   ├── administrators.html       # Gestión de cuentas de administradores
+│   │   │   ├── categories.html           # Gestión de categorías del sistema
+│   │   │   ├── dashboard.html            # Dashboard de métricas del sistema
+│   │   │   ├── login.html                # Inicio de sesión exclusivo del administrador
+│   │   │   ├── users.html                # Gestión de usuarios registrados
+│   │   │   ├── verificationRequests.html # Panel de solicitudes de verificación pendientes
+│   │   │   └── verifications.html        # Historial de verificaciones procesadas
+│   │   ├── company/                      # Vistas HTML del módulo de empresas
+│   │   │   ├── company.html              # Perfil y panel de la empresa autenticada
+│   │   │   ├── createCompany.html        # Formulario de registro de empresa
+│   │   │   └── homeCompany.html          # Página de inicio del módulo de empresa
+│   │   ├── components/                   # Componentes HTML parciales reutilizables
+│   │   │   ├── footer.html               # Componente Footer de la aplicación
+│   │   │   ├── login.html                # Formulario de login/registro de usuarios
+│   │   │   ├── navbar.html               # Componente Navbar de navegación
+│   │   │   └── sidebar.html              # Componente Sidebar con menú lateral
+│   │   ├── supplier/                     # Vistas HTML del módulo de proveedores
+│   │   │   ├── createSupplier.html       # Formulario de registro del perfil de proveedor
+│   │   │   ├── homeSupplier.html         # Dashboard principal del proveedor
+│   │   │   ├── supplier.html             # Perfil público del proveedor con catálogo
+│   │   │   └── verification.html         # Formulario de solicitud de verificación
+│   │   ├── category.html                 # Directorio de categorías de proveedores
+│   │   ├── categoryInfo.html             # Vista detallada de una categoría específica
+│   │   ├── favorites.html                # Vista de proveedores y productos guardados
+│   │   ├── home.html                     # Panel principal según el rol autenticado
+│   │   └── profile.html                  # Vista de gestión de perfil de usuario
 │   ├── index.html                        # Punto de entrada de la SPA / PWA
-│   ├── manifest.json                     # Manifiesto Web de la PWA
-│   └── sw.js                             # Service Worker de la PWA
+│   ├── manifest.json                     # Manifiesto Web de la PWA (nombre, iconos, display)
+│   └── sw.js                             # Service Worker: caché, offline y estrategia Supabase
 │
 ├── database/
-│   └── squema/                           # Contenedor de scripts SQL de definición e inicialización
+│   ├── ProveeLinkDb.sql                  # Script SQL principal de creación del esquema
+│   ├── migrations/
+│   │   └── 001_verification_system.sql   # Migración: sistema de verificación de proveedores
+│   └── squema/                           # Carpeta de scripts SQL auxiliares de definición
 │
 └── README.md                             # Documentación técnica oficial del proyecto
 ```
