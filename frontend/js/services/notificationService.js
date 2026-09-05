@@ -264,7 +264,13 @@ function escapeHtml(str) {
  * Muestra un modal de confirmación elegante sin usar window.confirm nativo.
  * @param {{ title?: string, message: string, confirmText?: string, cancelText?: string, onConfirm: () => void|Promise<void> }} options
  */
-function showConfirm({ title = "Confirmar acción", message, confirmText = "Confirmar", cancelText = "Cancelar", onConfirm }) {
+function showConfirm({
+  title = "Confirmar acción",
+  message,
+  confirmText = "Confirmar",
+  cancelText = "Cancelar",
+  onConfirm,
+}) {
   document.getElementById("confirm-modal-overlay")?.remove();
 
   const overlay = document.createElement("div");
@@ -295,14 +301,18 @@ function showConfirm({ title = "Confirmar acción", message, confirmText = "Conf
 
   const close = () => overlay.remove();
   overlay.querySelector("#confirmCancelBtn")?.addEventListener("click", close);
-  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
-
-  overlay.querySelector("#confirmOkBtn")?.addEventListener("click", async () => {
-    close();
-    if (typeof onConfirm === "function") {
-      await onConfirm();
-    }
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
   });
+
+  overlay
+    .querySelector("#confirmOkBtn")
+    ?.addEventListener("click", async () => {
+      close();
+      if (typeof onConfirm === "function") {
+        await onConfirm();
+      }
+    });
 }
 
 /**
@@ -326,4 +336,6 @@ export const notify = {
 
 export const NotificationManager = notify;
 
-
+export const NotificationService = {
+  showToast,
+};

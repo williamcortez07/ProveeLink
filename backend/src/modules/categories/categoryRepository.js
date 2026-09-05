@@ -185,3 +185,54 @@ export const updateCategory = async (id, updateData) => {
     throw new Error("Error al actualizar la categoria");
   }
 };
+
+/**
+ * Elimina una categoría por ID.
+ * Si la categoría tiene productos asociados, lanza un error de negocio.
+ *
+ * @param {string} id UUID de la categoría
+ * @returns {Promise<{ id: string }>}
+ */
+export const deleteCategory = async (id) => {
+  try {
+    // Verificar si tiene productos asociados
+    const checkSql = `
+      SELECT COUNT(*) AS cnt
+      FROM public.products
+      WHERE category_id = $1;
+    `;
+    const checkResult = await query(checkSql, [id]);
+    const productCount = Number(checkResult.rows[0]?.cnt ?? 0);
+
+    if (productCount > 0) {
+      const err = new Error(
+        `No se puede eliminar la categoría porque tiene ${productCount} producto(s) asociado(s).`,
+      );
+      err.status = 409;
+      throw err;
+    }
+
+    // Verificar si tiene subcategorías
+    const subCheck = await query(
+      `SELECT COUNT(*) AS cnt FROM public.categories WHERE parent_id = $1;`,
+      [id],
+    );
+    const subCount = Number(subCheck.rows[0]?.cnt ?? 0);
+
+    if (subCount > 0) {
+      const err = new Error(
+        `No se puede eliminar la categoría porque tiene ${subCount} subcategoría(s) asociada(s).`,
+      );
+      err.status = 409;
+      throw err;
+    }
+
+    const sql = `DELETE FROM public.categories WHERE id = $1 RETURNING id, name;`;
+    const result = await query(sql, [id]);
+    return result.rows[0] || null;
+  } catch (err) {
+    if (err.status) throw err;
+    logger.error({ err, id }, "Error en deleteCategory");
+    throw new Error("Error al eliminar la categoría");
+  }
+};

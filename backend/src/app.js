@@ -11,6 +11,7 @@ import supplierRoutes from "./modules/suppliers/supplierRoutes.js";
 import productRoutes from "./modules/products/productRoutes.js";
 import commentRoutes from "./modules/comments/commentRoutes.js";
 import ratingRoutes from "./modules/ratings/ratingRoutes.js";
+import adminRoutes from "./modules/admin/adminRoutes.js";
 import { setupSwagger } from "./config/swagger.js";
 import { env } from "./config/environment.js";
 
@@ -63,6 +64,8 @@ app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/comments", commentRoutes);
 // Módulo de Ratings
 app.use("/api/v1/ratings", ratingRoutes);
+// Módulo de Administración (protegido — requiere rol Admin)
+app.use("/api/v1/admin", adminRoutes);
 
 app.use(errorHandler);
 

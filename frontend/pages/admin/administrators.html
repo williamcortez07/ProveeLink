@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administradores — Panel Admin ProveeLink</title>
+    <link rel="stylesheet" href="../../css/admin/admin.css" />
+  </head>
+  <body>
+    <div class="adm-layout">
+      <aside class="adm-sidebar" id="adminSidebar">
+        <div class="adm-sidebar__header">
+          <div class="adm-sidebar__logo">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="2.5"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <div class="adm-sidebar__brand">
+            <span class="adm-sidebar__brand-name"
+              ><span style="color: #6366f1">Provee</span>Link</span
+            ><span class="adm-sidebar__brand-tag">Panel Admin</span>
+          </div>
+        </div>
+        <nav class="adm-sidebar__nav">
+          <span class="adm-nav-section-label">Principal</span>
+          <a href="dashboard.html" class="adm-nav-item"
+            ><svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" /></svg
+            >Dashboard</a
+          >
+          <span class="adm-nav-section-label">Gestión</span>
+          <a href="categories.html" class="adm-nav-item"
+            ><svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M4 6h16M4 12h16M4 18h7" /></svg
+            >Categorías</a
+          >
+          <a href="verifications.html" class="adm-nav-item"
+            ><svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" /></svg
+            >Verificaciones</a
+          >
+          <a href="users.html" class="adm-nav-item"
+            ><svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+            >Usuarios</a
+          >
+          <span class="adm-nav-section-label">Sistema</span>
+          <a href="administrators.html" class="adm-nav-item active"
+            ><svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg
+            >Administradores</a
+          >
+        </nav>
+        <div class="adm-sidebar__footer">
+          <div class="adm-user-mini">
+            <div class="adm-user-mini__avatar" id="sidebarUserAvatar">AD</div>
+            <div class="adm-user-mini__info">
+              <div class="adm-user-mini__name" id="sidebarUserName">
+                Administrador
+              </div>
+              <div class="adm-user-mini__role" id="sidebarUserEmail">admin</div>
+            </div>
+            <button
+              class="adm-logout-btn"
+              id="sidebarLogoutBtn"
+              title="Cerrar sesión"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+      <div class="adm-sidebar-overlay" id="sidebarOverlay"></div>
+
+      <main class="adm-main">
+        <header class="adm-topbar">
+          <div class="adm-topbar__left">
+            <button
+              class="adm-topbar__menu-btn"
+              id="menuToggleBtn"
+              aria-label="Menú"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <div>
+              <div class="adm-topbar__title">Administradores</div>
+              <div class="adm-topbar__breadcrumb">
+                Gestión de cuentas con acceso administrativo al sistema
+              </div>
+            </div>
+          </div>
+          <div class="adm-topbar__right">
+            <button
+              class="adm-theme-toggle"
+              id="themeToggleBtn"
+              aria-label="Cambiar tema"
+              title="Alternar Modo Claro / Oscuro"
+            ></button>
+            <button class="adm-btn adm-btn--primary" id="openCreateAdminModal">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nuevo Administrador
+            </button>
+          </div>
+        </header>
+
+        <div class="adm-content">
+          <div class="adm-table-wrap">
+            <div class="adm-table-header">
+              <div class="adm-table-header__title" id="tableTotal">
+                Cuentas Administrativas
+              </div>
+            </div>
+
+            <div class="adm-table-scroll">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th>Administrador</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                    <th>Último acceso</th>
+                    <th>Fecha de creación</th>
+                  </tr>
+                </thead>
+                <tbody id="adminsTableBody">
+                  <tr>
+                    <td colspan="5">
+                      <div class="adm-empty" style="padding: 40px">
+                        <div
+                          class="adm-spinner"
+                          style="width: 28px; height: 28px"
+                        ></div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="adm-pagination" id="pagination" style="display: none">
+              <span class="adm-pagination__info" id="paginationInfo"></span>
+              <div
+                class="adm-pagination__controls"
+                id="paginationControls"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODAL NUEVO ADMINISTRADOR -->
+    <div
+      class="adm-modal-overlay"
+      id="createAdminModal"
+      style="display: none"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="adm-modal">
+        <div class="adm-modal__header">
+          <h2 class="adm-modal__title">Crear Nuevo Administrador</h2>
+          <button
+            class="adm-modal__close"
+            id="closeCreateAdminModal"
+            aria-label="Cerrar"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="adm-modal__body">
+          <div class="adm-alert adm-alert--warning" style="margin-bottom: 20px">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div class="adm-alert__text">
+              Las cuentas de administrador tienen acceso completo al sistema y
+              requieren verificación 2FA por correo en cada inicio de sesión.
+            </div>
+          </div>
+
+          <div
+            class="adm-form-error adm-alert adm-alert--danger"
+            id="createAdminFormError"
+            style="display: none; margin-bottom: 16px"
+          ></div>
+
+          <form id="createAdminForm" novalidate>
+            <div class="adm-form-row">
+              <div class="adm-form-group">
+                <label class="adm-form-label" for="adminFirstName"
+                  >Nombre *</label
+                >
+                <input
+                  class="adm-form-input"
+                  type="text"
+                  id="adminFirstName"
+                  placeholder="Juan"
+                  required
+                />
+                <p class="adm-form-error" id="firstNameError"></p>
+              </div>
+              <div class="adm-form-group">
+                <label class="adm-form-label" for="adminLastName"
+                  >Apellido *</label
+                >
+                <input
+                  class="adm-form-input"
+                  type="text"
+                  id="adminLastName"
+                  placeholder="Pérez"
+                  required
+                />
+                <p class="adm-form-error" id="lastNameError"></p>
+              </div>
+            </div>
+
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="newAdminEmail"
+                >Correo electrónico *</label
+              >
+              <input
+                class="adm-form-input"
+                type="email"
+                id="newAdminEmail"
+                placeholder="admin.nuevo@proveelink.com"
+                required
+              />
+              <p class="adm-form-error" id="newEmailError"></p>
+            </div>
+
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="adminPhone">Teléfono</label>
+              <input
+                class="adm-form-input"
+                type="tel"
+                id="adminPhone"
+                placeholder="+504 9999-9999"
+              />
+            </div>
+
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="newAdminPassword"
+                >Contraseña inicial *</label
+              >
+              <input
+                class="adm-form-input"
+                type="password"
+                id="newAdminPassword"
+                placeholder="••••••••"
+                required
+              />
+              <p class="adm-form-error" id="newPasswordError"></p>
+              <span style="font-size: 11px; color: var(--adm-text-muted)"
+                >Mínimo 8 caracteres, 1 mayúscula y 1 número.</span
+              >
+            </div>
+          </form>
+        </div>
+        <div class="adm-modal__footer">
+          <button
+            class="adm-btn adm-btn--secondary"
+            id="cancelCreateAdminModal"
+          >
+            Cancelar
+          </button>
+          <button class="adm-btn adm-btn--primary" id="saveAdminBtn">
+            <span id="saveAdminBtnText">Crear Administrador</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="../../js/admin/administrators.js"></script>
+  </body>
+</html>

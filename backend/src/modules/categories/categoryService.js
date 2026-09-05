@@ -66,3 +66,20 @@ export const updateCategoryService = async (id, updateData) => {
   );
   return updatedCategory;
 };
+
+export const deleteCategoryService = async (id) => {
+  const existing = await categoryRepository.getCategoryById(id);
+  if (!existing) {
+    throw new AppError("Categoría no encontrada", 404);
+  }
+
+  try {
+    const deleted = await categoryRepository.deleteCategory(id);
+    return deleted;
+  } catch (err) {
+    if (err.status === 409) {
+      throw new AppError(err.message, 409);
+    }
+    throw err;
+  }
+};

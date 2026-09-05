@@ -9,6 +9,7 @@ const ALLOWED_SORT_FIELDS = new Set([
   "geographic_coverage",
   "operating_hours",
   "status",
+  "average_rating",
   "created_at",
   "updated_at",
 ]);

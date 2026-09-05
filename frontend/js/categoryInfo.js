@@ -11,6 +11,7 @@
 
 import { homeApi, TokenManager } from "./services/api.js";
 import { Router } from "./services/routes.js";
+import { buildVerifiedBadge } from "./utils/verifiedBadge.js";
 
 /**
  * Escapa caracteres HTML para prevenir inyecciones XSS.
@@ -85,7 +86,10 @@ function createProviderCard(supplier) {
       </svg>
     </div>
     <div class="provider-body">
-      <h3 class="provider-name">${escapeHtml(supplier.company_name ?? "Proveedor")}</h3>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
+        <h3 class="provider-name" style="margin:0;">${escapeHtml(supplier.company_name ?? "Proveedor")}</h3>
+        ${buildVerifiedBadge(supplier.verification_status, "compact")}
+      </div>
       <p class="provider-category">${escapeHtml(supplier.supplier_type ?? "Proveedor Registrado")}</p>
       
       <div class="provider-rating">

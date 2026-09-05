@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Panel Admin ProveeLink</title>
+    <meta
+      name="description"
+      content="Estadísticas y resumen general del sistema ProveeLink."
+    />
+    <link rel="stylesheet" href="../../css/admin/admin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="adm-layout">
+      <!-- SIDEBAR -->
+      <aside class="adm-sidebar" id="adminSidebar">
+        <div class="adm-sidebar__header">
+          <div class="adm-sidebar__logo">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="2.5"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <div class="adm-sidebar__brand">
+            <span class="adm-sidebar__brand-name"
+              ><span style="color: #6366f1">Provee</span>Link</span
+            >
+            <span class="adm-sidebar__brand-tag">Panel Admin</span>
+          </div>
+        </div>
+
+        <nav class="adm-sidebar__nav">
+          <span class="adm-nav-section-label">Principal</span>
+          <a href="dashboard.html" class="adm-nav-item active">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+            Dashboard
+          </a>
+
+          <span class="adm-nav-section-label">Gestión</span>
+          <a href="categories.html" class="adm-nav-item">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+            Categorías
+          </a>
+          <a
+            href="verifications.html"
+            class="adm-nav-item"
+            id="navVerifications"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            Verificaciones
+            <span class="adm-nav-badge" id="pendingBadge" style="display: none"
+              >0</span
+            >
+          </a>
+          <a href="users.html" class="adm-nav-item">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Usuarios
+          </a>
+
+          <span class="adm-nav-section-label">Sistema</span>
+          <a href="administrators.html" class="adm-nav-item">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            Administradores
+          </a>
+        </nav>
+
+        <div class="adm-sidebar__footer">
+          <div class="adm-user-mini">
+            <div class="adm-user-mini__avatar" id="sidebarUserAvatar">AD</div>
+            <div class="adm-user-mini__info">
+              <div class="adm-user-mini__name" id="sidebarUserName">
+                Administrador
+              </div>
+              <div class="adm-user-mini__role" id="sidebarUserEmail">admin</div>
+            </div>
+            <button
+              class="adm-logout-btn"
+              id="sidebarLogoutBtn"
+              title="Cerrar sesión"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Overlay mobile -->
+      <div class="adm-sidebar-overlay" id="sidebarOverlay"></div>
+
+      <!-- MAIN -->
+      <main class="adm-main">
+        <!-- Topbar -->
+        <header class="adm-topbar">
+          <div class="adm-topbar__left">
+            <button
+              class="adm-topbar__menu-btn"
+              id="menuToggleBtn"
+              aria-label="Menú"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <div>
+              <div class="adm-topbar__title">Dashboard</div>
+              <div class="adm-topbar__breadcrumb">
+                Resumen general del sistema
+              </div>
+            </div>
+          </div>
+          <div class="adm-topbar__right">
+            <button
+              class="adm-theme-toggle"
+              id="themeToggleBtn"
+              aria-label="Cambiar tema"
+              title="Alternar Modo Claro / Oscuro"
+            ></button>
+            <span
+              id="topbarDate"
+              style="font-size: 13px; color: var(--adm-text-muted)"
+            ></span>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <div class="adm-content">
+          <!-- KPI Cards -->
+          <div class="adm-kpi-grid" id="kpiGrid">
+            <!-- Se renderizan desde dashboard.js -->
+            <div class="adm-kpi-card adm-skeleton" style="height: 110px"></div>
+            <div class="adm-kpi-card adm-skeleton" style="height: 110px"></div>
+            <div class="adm-kpi-card adm-skeleton" style="height: 110px"></div>
+            <div class="adm-kpi-card adm-skeleton" style="height: 110px"></div>
+          </div>
+
+          <!-- Charts -->
+          <div class="adm-charts-grid" id="chartsGrid">
+            <div class="adm-chart-card">
+              <div class="adm-chart-card__header">
+                <div>
+                  <div class="adm-chart-card__title">Registros de Usuarios</div>
+                  <div class="adm-chart-card__sub">Últimos 6 meses</div>
+                </div>
+              </div>
+              <canvas id="usersChart" height="220"></canvas>
+            </div>
+            <div class="adm-chart-card">
+              <div class="adm-chart-card__header">
+                <div>
+                  <div class="adm-chart-card__title">
+                    Proveedores por Estado
+                  </div>
+                  <div class="adm-chart-card__sub">Distribución actual</div>
+                </div>
+              </div>
+              <canvas id="suppliersChart" height="220"></canvas>
+            </div>
+          </div>
+
+          <div class="adm-chart-card" style="margin-bottom: 24px">
+            <div class="adm-chart-card__header">
+              <div>
+                <div class="adm-chart-card__title">Productos por Categoría</div>
+                <div class="adm-chart-card__sub">
+                  Top categorías por volumen de productos
+                </div>
+              </div>
+            </div>
+            <canvas id="categoriesChart" height="120"></canvas>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="../../js/admin/dashboard.js"></script>
+  </body>
+</html>

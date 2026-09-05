@@ -8,6 +8,8 @@ import {
   registerSchema,
   verifyEmailSchema,
   resendOtpSchema,
+  adminVerifySchema,
+  adminResendSchema,
 } from "./auth.schema.js";
 
 
@@ -573,6 +575,27 @@ router.post(
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post("/upgrade-role", authenticate, authController.upgradeRole);
+
+/**
+ * POST /api/v1/auth/admin-verify
+ * Verifica el OTP de login administrativo y emite tokens de sesión.
+ * No requiere autenticación previa (es parte del flujo de pre-login).
+ */
+router.post(
+  "/admin-verify",
+  validateRequest(adminVerifySchema),
+  authController.adminVerifyOtp,
+);
+
+/**
+ * POST /api/v1/auth/admin-resend-otp
+ * Reenvía el OTP de login administrativo.
+ */
+router.post(
+  "/admin-resend-otp",
+  validateRequest(adminResendSchema),
+  authController.adminResendOtp,
+);
 
 export default router;
 

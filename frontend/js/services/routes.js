@@ -54,6 +54,7 @@ export const ROLE_ROUTES = Object.freeze({
   [ROLES.USER]: "pages/home.html",
   [ROLES.SUPPLIER]: "pages/supplier/homeSupplier.html",
   [ROLES.COMPANY]: "pages/company/homeCompany.html",
+  [ROLES.ADMIN]: "pages/admin/dashboard.html",
   PUBLIC_LOGIN: "index.html",
 });
 
@@ -84,6 +85,7 @@ const ALLOWED_SUBROUTES = Object.freeze({
     "pages/profile.html",
     "pages/category.html",
     "pages/categoryInfo.html",
+    "pages/favorites.html",
   ],
   [ROLES.COMPANY]: [
     "pages/company/",
@@ -92,6 +94,10 @@ const ALLOWED_SUBROUTES = Object.freeze({
     "pages/profile.html",
     "pages/category.html",
     "pages/categoryInfo.html",
+    "pages/favorites.html",
+  ],
+  [ROLES.ADMIN]: [
+    "pages/admin/",
   ],
 });
 
