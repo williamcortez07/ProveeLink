@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Admin — ProveeLink</title>
+  <meta name="description" content="Acceso exclusivo al panel de administración de ProveeLink." />
+  <link rel="stylesheet" href="../../css/admin/admin.css" />
+</head>
+<body>
+  <main class="adm-login-page" id="adminLoginPage">
+
+    <!-- PASO 1: Formulario Email/Contraseña -->
+    <div class="adm-login-card" id="stepLogin">
+      <div class="adm-login-card__top">
+        <div class="adm-login-logo">
+          <div class="adm-login-logo__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="adm-login-logo__text">
+            <span class="adm-login-logo__brand"><span style="color:#6366f1">Provee</span>Link</span>
+            <span class="adm-login-logo__tag">Panel Admin</span>
+          </div>
+        </div>
+        <button class="adm-theme-toggle" id="loginThemeToggleBtn" aria-label="Cambiar tema" title="Alternar Modo Claro / Oscuro"></button>
+      </div>
+
+      <h1 class="adm-login-title">Acceso Administrativo</h1>
+      <p class="adm-login-subtitle">Ingresa tus credenciales para continuar</p>
+
+      <div class="adm-login-error" id="loginError"></div>
+
+      <form id="adminLoginForm" novalidate>
+        <div class="adm-form-group">
+          <label class="adm-form-label" for="adminEmail">Correo electrónico</label>
+          <div class="adm-input-wrap">
+            <svg class="adm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+            <input class="adm-form-input" type="email" id="adminEmail"
+              placeholder="admin@proveelink.com" autocomplete="email" required />
+          </div>
+          <p class="adm-form-error" id="emailError"></p>
+        </div>
+
+        <div class="adm-form-group">
+          <label class="adm-form-label" for="adminPassword">Contraseña</label>
+          <div class="adm-input-wrap">
+            <svg class="adm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input class="adm-form-input" type="password" id="adminPassword"
+              placeholder="••••••••" autocomplete="current-password" required
+              style="padding-left:38px;padding-right:44px" />
+            <button type="button" id="toggleAdminPass" aria-label="Mostrar contraseña"
+              style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--adm-text-muted);display:flex">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <p class="adm-form-error" id="passwordError"></p>
+        </div>
+
+        <button type="submit" class="adm-login-btn" id="loginSubmitBtn">
+          <span id="loginBtnText">Continuar</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </form>
+
+      <p style="text-align:center;font-size:12px;color:var(--adm-text-muted);margin-top:24px">
+        Acceso restringido a administradores autorizados.
+      </p>
+    </div>
+
+    <!-- PASO 2: Verificación OTP -->
+    <div class="adm-login-card" id="stepOtp" style="display:none">
+      <div class="adm-login-card__top">
+        <div class="adm-login-logo">
+          <div class="adm-login-logo__icon" style="background:var(--adm-success)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+          </div>
+          <div class="adm-login-logo__text">
+            <span class="adm-login-logo__brand"><span style="color:#6366f1">Provee</span>Link</span>
+            <span class="adm-login-logo__tag">Verificación 2FA</span>
+          </div>
+        </div>
+        <button class="adm-theme-toggle" id="otpThemeToggleBtn" aria-label="Cambiar tema" title="Alternar Modo Claro / Oscuro"></button>
+      </div>
+
+      <h1 class="adm-login-title">Verifica tu identidad</h1>
+      <p class="adm-login-subtitle" id="otpSubtitle">Ingresa el código de 6 dígitos enviado a <strong id="otpEmail"></strong></p>
+
+      <div class="adm-login-error" id="otpError"></div>
+
+      <div class="adm-otp-inputs" id="otpInputsWrap">
+        <input class="adm-otp-input" id="otp-0" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 1"/>
+        <input class="adm-otp-input" id="otp-1" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 2"/>
+        <input class="adm-otp-input" id="otp-2" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 3"/>
+        <input class="adm-otp-input" id="otp-3" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 4"/>
+        <input class="adm-otp-input" id="otp-4" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 5"/>
+        <input class="adm-otp-input" id="otp-5" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 6"/>
+      </div>
+
+      <div class="adm-login-timer" id="otpTimerWrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        El código expira en <span id="otpTimerDisplay">10:00</span>
+      </div>
+
+      <button type="button" class="adm-login-btn" id="otpVerifyBtn" style="margin-bottom:12px">
+        <span id="otpBtnText">Verificar código</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </button>
+
+      <div style="text-align:center">
+        <button type="button" class="adm-link-btn" id="otpResendBtn" disabled>
+          Solicitar nuevo código
+        </button>
+      </div>
+
+      <div style="text-align:center;margin-top:16px">
+        <button type="button" class="adm-link-btn" id="backToLoginBtn"
+          style="color:var(--adm-text-muted);font-size:12px">
+          ← Volver al inicio de sesión
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module" src="../../js/admin/login.js"></script>
+</body>
+</html>

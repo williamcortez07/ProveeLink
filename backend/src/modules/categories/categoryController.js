@@ -42,3 +42,13 @@ export const updateCategory = asyncWrapper(async (req, res) => {
     data: updatedCategory,
   });
 });
+
+export const deleteCategory = asyncWrapper(async (req, res) => {
+  const { id } = req.params;
+  const deleted = await categoryService.deleteCategoryService(id);
+  res.status(200).json({
+    success: true,
+    message: `Categoría '${deleted?.name}' eliminada exitosamente.`,
+    data: deleted,
+  });
+});

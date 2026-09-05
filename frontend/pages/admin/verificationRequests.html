@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solicitudes de Verificación — Panel Admin ProveeLink</title>
+  <meta name="description" content="Revisión y aprobación de solicitudes de verificación de proveedores con suscripción en ProveeLink."/>
+  <link rel="stylesheet" href="../../css/admin/admin.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar" id="adminSidebar">
+    <div class="adm-sidebar__header">
+      <div class="adm-sidebar__logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="adm-sidebar__brand"><span class="adm-sidebar__brand-name"><span style="color:#6366f1">Provee</span>Link</span><span class="adm-sidebar__brand-tag">Panel Admin</span></div>
+    </div>
+    <nav class="adm-sidebar__nav">
+      <span class="adm-nav-section-label">Principal</span>
+      <a href="dashboard.html" class="adm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <span class="adm-nav-section-label">Gestión</span>
+      <a href="categories.html" class="adm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>Categorías</a>
+      <a href="verifications.html" class="adm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Verif. Legadas</a>
+      <a href="verificationRequests.html" class="adm-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z"/></svg>Solicitudes (Nuevas)</a>
+      <a href="users.html" class="adm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Usuarios</a>
+      <span class="adm-nav-section-label">Sistema</span>
+      <a href="administrators.html" class="adm-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Administradores</a>
+    </nav>
+    <div class="adm-sidebar__footer">
+      <div class="adm-user-mini">
+        <div class="adm-user-mini__avatar" id="sidebarUserAvatar">AD</div>
+        <div class="adm-user-mini__info">
+          <div class="adm-user-mini__name" id="sidebarUserName">Administrador</div>
+          <div class="adm-user-mini__role" id="sidebarUserEmail">admin</div>
+        </div>
+        <button class="adm-logout-btn" id="sidebarLogoutBtn" title="Cerrar sesión">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="adm-sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="adm-main">
+    <header class="adm-topbar">
+      <div class="adm-topbar__left">
+        <button class="adm-topbar__menu-btn" id="menuToggleBtn" aria-label="Menú"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div>
+          <div class="adm-topbar__title">Solicitudes de Verificación</div>
+          <div class="adm-topbar__breadcrumb">Gestión del nuevo sistema con suscripción PayPal</div>
+        </div>
+      </div>
+      <div class="adm-topbar__right">
+        <button class="adm-theme-toggle" id="themeToggleBtn" aria-label="Cambiar tema" title="Alternar Modo Claro / Oscuro"></button>
+      </div>
+    </header>
+
+    <div class="adm-content">
+      <!-- Filtros de estado -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" role="group" aria-label="Filtros por estado">
+        <button class="adm-btn adm-btn--primary adm-btn--sm" data-status-filter="pending_review" id="filterPendingReview">En Revisión</button>
+        <button class="adm-btn adm-btn--secondary adm-btn--sm" data-status-filter="pending_payment" id="filterPendingPayment">Pago Pendiente</button>
+        <button class="adm-btn adm-btn--secondary adm-btn--sm" data-status-filter="approved" id="filterApproved">Aprobadas</button>
+        <button class="adm-btn adm-btn--secondary adm-btn--sm" data-status-filter="rejected" id="filterRejected">Rechazadas</button>
+        <button class="adm-btn adm-btn--secondary adm-btn--sm" data-status-filter="" id="filterAll">Todas</button>
+      </div>
+
+      <div class="adm-table-wrap">
+        <div class="adm-table-header">
+          <div class="adm-table-header__title" id="tableTotal">Solicitudes</div>
+          <div class="adm-table-header__actions">
+            <div class="adm-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="searchInput" placeholder="Buscar proveedor..." autocomplete="off"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="adm-table-scroll">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>Proveedor / Empresa</th>
+                <th>Plan</th>
+                <th>Pago</th>
+                <th>Estado</th>
+                <th>Enviada</th>
+                <th style="text-align:right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="verReqTableBody">
+              <tr><td colspan="6"><div class="adm-empty" style="padding:40px"><div class="adm-spinner" style="width:28px;height:28px"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="adm-pagination" id="pagination" style="display:none">
+          <span class="adm-pagination__info" id="paginationInfo"></span>
+          <div class="adm-pagination__controls" id="paginationControls"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="adm-modal-overlay" id="detailModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+  <div class="adm-modal adm-modal--wide">
+    <div class="adm-modal__header">
+      <h2 class="adm-modal__title" id="detailModalTitle">Detalle de solicitud</h2>
+      <button class="adm-modal__close" id="closeDetailModal" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="adm-modal__body" id="detailModalBody" style="max-height:65vh;overflow-y:auto">
+      <div class="adm-spinner" style="width:32px;height:32px;margin:auto"></div>
+    </div>
+    <div class="adm-modal__footer" id="detailModalFooter"></div>
+  </div>
+</div>
+
+<!-- MODAL RECHAZO -->
+<div class="adm-modal-overlay" id="rejectModal" style="display:none" role="dialog" aria-modal="true">
+  <div class="adm-modal" style="max-width:500px">
+    <div class="adm-modal__header">
+      <h2 class="adm-modal__title">Rechazar solicitud</h2>
+      <button class="adm-modal__close" id="closeRejectModal" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="adm-modal__body">
+      <p style="margin-bottom:12px;font-size:0.9rem;color:var(--adm-text-muted)">
+        Proporciona el motivo del rechazo. Este mensaje será enviado al proveedor por correo electrónico.
+      </p>
+      <label for="rejectReasonInput" style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px">Motivo de rechazo *</label>
+      <textarea id="rejectReasonInput" rows="4" placeholder="Ejemplo: La documentación presentada no es legible..." style="width:100%;border:1px solid var(--adm-border);border-radius:8px;padding:10px;font-family:inherit;font-size:0.9rem;resize:vertical;outline:none"></textarea>
+      <div id="rejectReasonError" style="color:#dc2626;font-size:0.82rem;margin-top:4px;display:none">El motivo es obligatorio (mínimo 10 caracteres).</div>
+    </div>
+    <div class="adm-modal__footer">
+      <button class="adm-btn adm-btn--secondary" id="cancelRejectBtn">Cancelar</button>
+      <button class="adm-btn adm-btn--danger" id="confirmRejectBtn">Confirmar rechazo</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="../../js/admin/verificationRequests.js"></script>
+</body>
+</html>

@@ -206,3 +206,84 @@ export const findRoleByName = async (name) => {
     throw new Error("Error al buscar el rol por nombre");
   }
 };
+
+/**
+ * Inserta o actualiza un registro OTP para login administrativo.
+ * Usa verification_type = 'admin_login' para distinguirlo del OTP de registro.
+ *
+ * @param {{ email: string, user_id: string, otp_hash: string, expires_minutes?: number }} params
+ */
+export const upsertAdminLoginOtp = async ({
+  email,
+  user_id,
+  otp_hash,
+  expires_minutes = 10,
+}) => {
+  try {
+    const sql = `
+      INSERT INTO public.verify_email (user_id, email, code_otp, verification_type, expires_in)
+      VALUES ($1, $2, $3, 'admin_login', NOW() + ($4 || ' minutes')::INTERVAL)
+      ON CONFLICT (email)
+      DO UPDATE SET
+        code_otp          = EXCLUDED.code_otp,
+        verification_type = 'admin_login',
+        expires_in        = EXCLUDED.expires_in,
+        used              = FALSE,
+        failed_attempts   = 0,
+        created_on        = NOW();
+    `;
+    await query(sql, [user_id, email, otp_hash, expires_minutes]);
+  } catch (err) {
+    logger.error({ err, email }, "Error en upsertAdminLoginOtp");
+    throw new Error("Error al guardar el OTP de administrador");
+  }
+};
+
+/**
+ * Busca el OTP activo de login administrativo (no expirado, no usado).
+ *
+ * @param {string} email
+ * @returns {Promise<object|null>}
+ */
+export const findActiveAdminOtp = async (email) => {
+  try {
+    const sql = `
+      SELECT id, user_id, code_otp, expires_in, failed_attempts
+      FROM public.verify_email
+      WHERE email = $1
+        AND verification_type = 'admin_login'
+        AND used = FALSE
+        AND expires_in > NOW()
+      ORDER BY created_on DESC
+      LIMIT 1;
+    `;
+    const result = await query(sql, [email]);
+    return result.rows[0] || null;
+  } catch (err) {
+    logger.error({ err, email }, "Error en findActiveAdminOtp");
+    throw new Error("Error al consultar el OTP de administrador");
+  }
+};
+
+/**
+ * Marca el OTP de administrador como usado (sin activar ningún usuario).
+ *
+ * @param {string} otpId UUID del registro verify_email
+ */
+export const markAdminOtpUsed = async (otpId) => {
+  const client = await (await import("../../config/db.js")).pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `UPDATE public.verify_email SET used = TRUE WHERE id = $1;`,
+      [otpId],
+    );
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    logger.error({ err, otpId }, "Error en markAdminOtpUsed");
+    throw new Error("Error al marcar el OTP administrativo como usado");
+  } finally {
+    client.release();
+  }
+};

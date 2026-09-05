@@ -136,7 +136,7 @@ function renderHeroAndStats() {
 
   container.innerHTML = `
     <div class="supplier-hero-card">
-      <div class="supplier-hero-header">
+      <div class="supplier-hero-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
         <div class="supplier-info-meta">
           <div class="supplier-avatar-box">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -151,9 +151,16 @@ function renderHeroAndStats() {
               <span>•</span>
               <span style="color: #4ade80;">${starsToBadge(rating)}</span>
               <span>•</span>
-              <span>Cobertura: <strong style="color: #cbd5e1; text-transform: uppercase;">${escapeHtml(supplier.geographic_coverage)}</strong></span>
+              <span>Verificación: <strong style="color: ${company.verification_status === 'verified' ? '#4ade80' : '#f59e0b'};">${company.verification_status === 'verified' ? '✓ Verificado' : 'Sin Verificar'}</strong></span>
             </div>
           </div>
+        </div>
+
+        <div>
+          <a href="verification.html" class="btn-primary-gradient" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; font-size:0.9rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            ${company.verification_status === 'verified' ? 'Suscripción Verificada' : 'Obtener Verificación'}
+          </a>
         </div>
       </div>
 
@@ -173,6 +180,7 @@ function renderHeroAndStats() {
       </div>
     </div>
   `;
+
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

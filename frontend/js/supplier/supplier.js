@@ -22,6 +22,7 @@
 import { homeApi, commentApi, ratingApi, TokenManager } from "../services/api.js";
 import { Router } from "../services/routes.js";
 import { notify } from "../services/notificationService.js";
+import { buildVerifiedBadge } from "../utils/verifiedBadge.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ESTADO LOCAL DEL MÓDULO
@@ -271,6 +272,7 @@ async function loadSupplierProfile() {
               <h1 style="font-size:1.6rem;font-weight:800;margin:0;color:var(--color-text-main);">
                 ${escapeHtml(supplier.company_name ?? "Proveedor")}
               </h1>
+              ${buildVerifiedBadge(supplier.verification_status)}
               <span style="font-size:0.75rem;font-weight:700;color:#166534;background:#dcfce7;padding:3px 10px;border-radius:var(--radius-pill);">
                 ${escapeHtml(supplier.status ?? "activo").toUpperCase()}
               </span>

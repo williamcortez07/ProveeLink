@@ -6,12 +6,13 @@ const supplierColumns = [
   "s.id",
   "s.company_id",
   "c.name AS company_name",
+  "c.verification_status",
   "s.supplier_type",
   "s.service_description",
   "s.geographic_coverage",
   "s.operating_hours",
   "s.status",
-  "s.average_rating",
+  "COALESCE((SELECT ROUND(AVG(score)::numeric, 2) FROM public.ratings r WHERE r.supplier_id = s.id), s.average_rating, 0.00) AS average_rating",
   "s.created_at",
   "s.updated_at",
 ].join(", ");
@@ -20,6 +21,8 @@ const mapSupplierRow = (row) => ({
   id: row.id,
   company_id: row.company_id,
   company_name: row.company_name,
+  verification_status: row.verification_status,
+  is_verified: row.verification_status === "verified",
   supplier_type: row.supplier_type,
   service_description: row.service_description,
   geographic_coverage: row.geographic_coverage,
@@ -269,3 +272,27 @@ export const updateSupplierStatus = async (id, status) => {
     throw new AppError("Error al actualizar el estado del proveedor", 500);
   }
 };
+
+/**
+ * Recalcula y actualiza la calificación promedio (average_rating) de un proveedor
+ * basándose en todas las evaluaciones registradas en la tabla public.ratings.
+ * @param {string} supplierId
+ */
+export const updateSupplierAverageRating = async (supplierId) => {
+  if (!supplierId) return;
+  try {
+    const sql = `
+      UPDATE public.suppliers
+      SET average_rating = COALESCE(
+        (SELECT ROUND(AVG(score)::numeric, 2) FROM public.ratings WHERE supplier_id = $1),
+        0.00
+      ),
+      updated_at = NOW()
+      WHERE id = $1;
+    `;
+    await query(sql, [supplierId]);
+  } catch (err) {
+    logger.error({ err, supplierId }, "Error actualizando el average_rating del proveedor");
+  }
+};
+

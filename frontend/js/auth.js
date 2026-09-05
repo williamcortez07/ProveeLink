@@ -610,6 +610,26 @@ const AuthManager = {
       this._setLoading("loginSubmit", true);
       try {
         const data = await loginService({ email, password });
+
+        // ── Flujo especial: Admin detectado ────────────────────────────────
+        // El backend no emite tokens todavía — envió OTP al correo del admin.
+        // Redirigimos al panel de administración donde el admin puede ingresar
+        // el código OTP que ya recibió en su correo.
+        const requiresOtp = data.requiresOtp || data.data?.requiresOtp;
+        if (requiresOtp) {
+          const adminEmail = data.email || data.data?.email || email;
+          notify.info(
+            "Cuenta de administrador detectada. Redirigiendo al panel de administración…",
+          );
+          setTimeout(() => {
+            // Siempre relativo a index.html (raíz del frontend)
+            window.location.href =
+              `./pages/admin/login.html?email=${encodeURIComponent(adminEmail)}&otp_sent=1`;
+          }, 1800);
+          return; // detiene el flujo normal de login
+        }
+        // ──────────────────────────────────────────────────────────────────
+
         SessionManager.saveSession(data);
         SessionManager.startSilentRefresh();
         notify.success("¡Inicio de sesión exitoso!");
