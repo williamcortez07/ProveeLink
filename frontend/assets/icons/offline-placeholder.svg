@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0f2d59"/>
+      <stop offset="100%" stop-color="#24b34b"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Card -->
+  <rect width="400" height="300" rx="16" fill="url(#bgGrad)"/>
+  <rect x="1" y="1" width="398" height="298" rx="15" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 6"/>
+  
+  <!-- Central Group -->
+  <g transform="translate(200, 130)" text-anchor="middle">
+    <!-- Image placeholder icon -->
+    <rect x="-45" y="-55" width="90" height="70" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+    <circle cx="-20" cy="-35" r="8" fill="#cbd5e1"/>
+    <path d="M-40 0 L-20 -20 L0 0 L15 -12 L40 10 L40 10 L-40 10 Z" fill="#94a3b8"/>
+    
+    <!-- Wifi Off Overlay Badge -->
+    <circle cx="30" cy="-40" r="20" fill="#0f2d59"/>
+    <!-- Slash / Wifi Off icon -->
+    <path d="M22 -48 L38 -32" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+    <path d="M20 -38 C 24 -43, 36 -43, 40 -38" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <circle cx="30" cy="-30" r="2.5" fill="#ffffff"/>
+
+    <!-- Text Messages -->
+    <text y="45" font-family="'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="16" fill="#0f2d59">
+      Sin conexión a Internet
+    </text>
+    <text y="68" font-family="'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="12" fill="#64748b">
+      Imagen no disponible fuera de línea
+    </text>
+
+    <!-- ProveeLink Logo Badge -->
+    <g transform="translate(0, 95)">
+      <rect x="-55" y="-14" width="110" height="24" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+      <text y="3" font-family="'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="11" text-anchor="middle">
+        <tspan fill="#0f2d59">Provee</tspan><tspan fill="#24b34b">Link</tspan>
+      </text>
+    </g>
+  </g>
+</svg>
