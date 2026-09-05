@@ -15,6 +15,7 @@ import {
 
 import { notify } from "./services/notificationService.js";
 import { Router } from "./services/routes.js";
+import { setFavicon } from "./pwa.js";
 /**
  * @namespace SessionManager
  * Gestiona el ciclo de vida de tokens y temporizadores.
@@ -84,12 +85,19 @@ const SessionManager = {
 
   /**
    * Inicia el mecanismo de Silent Refresh cada 2 horas.
-   * Cancela cualquier intervalo previo para evitar duplicados (memory leak).
+   * Preserva el token y la sesión del usuario si no hay conexión a internet.
    */
   startSilentRefresh() {
     this.stopSilentRefresh(); // garantiza un único intervalo activo
     const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
     this._refreshIntervalId = setInterval(async () => {
+      // Si no hay conexión a internet, preservar los tokens y la sesión actual
+      if (!navigator.onLine) {
+        console.info("[Auth] Dispositivo offline. Omitiendo renovación de token para preservar sesión.");
+        return;
+      }
+
       try {
         const res = await refreshTokenService();
         const token =
@@ -106,12 +114,49 @@ const SessionManager = {
           );
         }
       } catch (err) {
-        console.warn("[Auth] Silent refresh fallido:", err.message);
+        // Detectar si el fallo fue por problemas de red/offline
+        const isNetworkError =
+          !navigator.onLine ||
+          err.name === "TypeError" ||
+          err.message?.includes("Failed to fetch") ||
+          err.status === 533;
+
+        if (isNetworkError) {
+          console.warn(
+            "[Auth] Sin conexión al servidor para renovar token. Preservando sesión offline.",
+          );
+          return; // No borrar token ni cerrar sesión
+        }
+
+        console.warn("[Auth] Silent refresh fallido (token expirado):", err.message);
         notify.warning("Tu sesión expiró. Por favor inicia sesión de nuevo.");
         this.clearSession();
         AuthManager.renderLogin();
       }
     }, TWO_HOURS_MS);
+
+    // Intentar renovar de forma transparente tan pronto vuelva la conexión
+    if (!this._boundOnlineListener) {
+      this._boundOnlineListener = async () => {
+        if (localStorage.getItem("refreshToken")) {
+          try {
+            const res = await refreshTokenService();
+            const token =
+              res.accessToken ||
+              res.data?.accessToken ||
+              res.token ||
+              res.data?.token;
+            if (token) {
+              localStorage.setItem("accessToken", token);
+              console.info("[Auth] Token renovado automáticamente tras reconexión a internet.");
+            }
+          } catch (e) {
+            /* Silencioso en reconexión */
+          }
+        }
+      };
+      window.addEventListener("online", this._boundOnlineListener);
+    }
   },
 
   /** Detiene el intervalo de silent refresh. */
@@ -563,6 +608,7 @@ const AuthManager = {
   renderLogin() {
     const container = this.getContainer();
     if (!container) return;
+    setFavicon("./assets/icons/proteger.ico");
     container.innerHTML = AuthTemplates.login();
     this._bindLoginEvents();
   },
@@ -570,6 +616,7 @@ const AuthManager = {
   renderRegister() {
     const container = this.getContainer();
     if (!container) return;
+    setFavicon("./assets/icons/proteger.ico");
     container.innerHTML = AuthTemplates.register();
     this._bindRegisterEvents();
   },

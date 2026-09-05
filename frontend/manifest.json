@@ -1,0 +1,39 @@
+{
+  "name": "ProveeLink - Conectando Proveedores y Oportunidades",
+  "short_name": "ProveeLink",
+  "description": "Plataforma digital de conexión directa entre proveedores verificados y compradores.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f2d59",
+  "lang": "es",
+  "categories": ["business", "shopping"],
+  "icons": [
+    {
+      "src": "./assets/icons/baner.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icons/baner.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icons/baner.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./assets/icons/baner.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

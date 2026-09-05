@@ -25,6 +25,7 @@
  */
 
 import { TokenManager, RoleManager, ROLES } from "./api.js";
+import { setFavicon } from "../pwa.js";
 function getBasePath() {
   const parts = window.location.pathname.split("/").filter((p) => p !== "");
   const dirParts = parts.slice(0, -1);
@@ -103,6 +104,17 @@ const ALLOWED_SUBROUTES = Object.freeze({
 
 export const Router = {
   init() {
+    const isAuthPath =
+      window.location.pathname.endsWith("/login.html") ||
+      (window.location.pathname.endsWith("/index.html") && !TokenManager.isAuthenticated()) ||
+      (window.location.pathname === "/" && !TokenManager.isAuthenticated());
+
+    if (isAuthPath) {
+      setFavicon(resolveRoute("assets/icons/proteger.ico"));
+    } else {
+      setFavicon(resolveRoute("assets/icons/baner.ico"));
+    }
+
     if (!TokenManager.isAuthenticated()) {
       console.warn(
         "[Router] Sesión no válida o token expirado. Redirigiendo al Login...",
