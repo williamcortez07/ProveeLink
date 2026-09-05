@@ -81,6 +81,37 @@ const USER_ENDPOINTS = Object.freeze({
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HELPER INTERNO — ruta absoluta al index.html del frontend
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Calcula la URL absoluta al index.html del frontend (página de login)
+ * independientemente de cuántos niveles de profundidad tenga la página actual.
+ *
+ * Estrategia: busca el segmento '/frontend/' en el pathname y reconstruye
+ * la URL hasta ese punto. Funciona desde index.html, pages/*, pages/admin/*, etc.
+ *
+ * Ejemplos:
+ *   /frontend/index.html          → /frontend/index.html
+ *   /frontend/pages/home.html     → /frontend/index.html
+ *   /frontend/pages/admin/x.html  → /frontend/index.html
+ *
+ * @returns {string} URL absoluta al login de la app.
+ */
+function resolveIndexPath() {
+  const pathname = window.location.pathname;
+  const idx = pathname.indexOf("/frontend/");
+  if (idx !== -1) {
+    return pathname.substring(0, idx) + "/frontend/index.html";
+  }
+  // Si estamos exactamente en /frontend (sin trailing slash)
+  if (pathname.endsWith("/frontend")) {
+    return pathname + "/index.html";
+  }
+  return "/index.html"; // fallback
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ROLES — constantes centralizadas (nunca comparar strings literales)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -93,28 +124,32 @@ export const ROLES = Object.freeze({
   USER: "user",
   SUPPLIER: "supplier",
   COMPANY: "company",
+  ADMIN: "admin",
 });
 
 /**
  * Mapa de normalización: traduce los role_name del backend (en español o inglés,
  * con cualquier capitalización) a las constantes internas de ROLES.
  * @param {string|null} rawRole
- * @returns {string|null} Valor normalizado (ROLES.USER, ROLES.SUPPLIER, ROLES.COMPANY) o null.
+ * @returns {string|null} Valor normalizado (ROLES.USER, ROLES.SUPPLIER, ROLES.COMPANY, ROLES.ADMIN) o null.
  */
 function normalizeRole(rawRole) {
   if (!rawRole) return null;
   const ROLE_MAP = {
     // Español
-    cliente:     ROLES.USER,
-    clientes:    ROLES.USER,
-    proveedor:   ROLES.SUPPLIER,
-    proveedores: ROLES.SUPPLIER,
-    empresa:     ROLES.COMPANY,
-    empresas:    ROLES.COMPANY,
+    cliente:         ROLES.USER,
+    clientes:        ROLES.USER,
+    proveedor:       ROLES.SUPPLIER,
+    proveedores:     ROLES.SUPPLIER,
+    empresa:         ROLES.COMPANY,
+    empresas:        ROLES.COMPANY,
+    admin:           ROLES.ADMIN,
+    administrador:   ROLES.ADMIN,
+    administradores: ROLES.ADMIN,
     // Inglés (por si cambian en el futuro)
-    user:        ROLES.USER,
-    supplier:    ROLES.SUPPLIER,
-    company:     ROLES.COMPANY,
+    user:            ROLES.USER,
+    supplier:        ROLES.SUPPLIER,
+    company:         ROLES.COMPANY,
   };
   return ROLE_MAP[rawRole.toLowerCase()] ?? null;
 }
@@ -234,11 +269,14 @@ export const TokenManager = {
 
   /**
    * Cierra la sesión: elimina tokens y redirige al login.
-   * @param {string} [redirectTo="/"] - Ruta de redirección.
+   * Acepta un redirectTo explícito; si no se pasa, calcula automáticamente
+   * la URL al index.html del frontend sin importar la profundidad actual.
+   *
+   * @param {string|null} [redirectTo=null] - URL de destino explícita (opcional).
    */
-  logout(redirectTo = "../../index.html") {
+  logout(redirectTo = null) {
     this.removeToken();
-    window.location.href = redirectTo;
+    window.location.href = redirectTo ?? resolveIndexPath();
   },
 };
 

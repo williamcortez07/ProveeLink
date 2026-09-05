@@ -15,6 +15,9 @@ import {
   findUserByEmailForAuth,
   upsertOtpForResend,
   findRoleByName,
+  upsertAdminLoginOtp,
+  findActiveAdminOtp,
+  markAdminOtpUsed,
 } from "./auth.repository.js";
 import {
   getUserForAuth,
@@ -38,6 +41,30 @@ export const loginService = async ({ email, password }) => {
   if (!isPasswordValid) {
     throw new AppError("Credenciales inválidas", 401);
   }
+
+  // ── FLUJO ESPECIAL PARA ADMINISTRADORES ──────────────────────────
+  // Si el usuario tiene rol Admin, se exige verificación OTP en CADA login.
+  // No se emiten tokens hasta que el OTP sea validado correctamente.
+  if (user.role_name && user.role_name.toLowerCase() === "admin") {
+    const otpPlain = String(crypto.randomInt(100000, 1000000));
+    const otp_hash = await bcrypt.hash(otpPlain, 10);
+
+    await upsertAdminLoginOtp({
+      email: user.email,
+      user_id: user.id,
+      otp_hash,
+      expires_minutes: 10,
+    });
+
+    await sendOtpEmail(user.email, otpPlain);
+
+    return {
+      requiresOtp: true,
+      email: user.email,
+      message: "Se ha enviado un código de verificación a tu correo. Ingresa el código para continuar.",
+    };
+  }
+  // ────────────────────────────────────────────────────────────────
 
   const tokenPayload = {
     id: user.id,
@@ -264,6 +291,119 @@ export const resendOtpService = async ({ email }) => {
   });
 
   // 4. Enviar el nuevo OTP por correo
+  await sendOtpEmail(email, otpPlain);
+
+  return {
+    message: "Se ha enviado un nuevo código de verificación a tu correo.",
+  };
+};
+
+/**
+ * Servicio de verificación del OTP administrativo.
+ * Valida el código y emite tokens solo si el OTP es correcto y no ha expirado.
+ * NO activa ninguna cuenta — el admin ya debe estar 'active'.
+ *
+ * @param {{ email: string, otp: string }} params
+ * @returns {{ accessToken, refreshToken, expiresIn, user }}
+ */
+export const adminVerifyOtpService = async ({ email, otp }) => {
+  // 1. Buscar OTP activo de admin_login
+  const otpRecord = await findActiveAdminOtp(email);
+
+  if (!otpRecord) {
+    throw new AppError(
+      "No se encontró un código OTP activo para este correo. Puede haber expirado.",
+      400,
+    );
+  }
+
+  // 2. Comparar OTP en plano con el hash
+  const isValid = await bcrypt.compare(otp, otpRecord.code_otp);
+
+  if (!isValid) {
+    await incrementFailedAttempts(otpRecord.id);
+    throw new AppError("El código OTP es incorrecto.", 400);
+  }
+
+  // 3. Marcar OTP como usado
+  await markAdminOtpUsed(otpRecord.id);
+
+  // 4. Obtener datos actualizados del usuario
+  const user = await findUserByEmailForAuth(email);
+
+  if (!user) {
+    throw new AppError("Usuario no encontrado.", 404);
+  }
+
+  // 5. Verificar que siga siendo Admin y activo
+  if (user.role_name.toLowerCase() !== "admin") {
+    throw new AppError("Acceso denegado. No tienes permisos administrativos.", 403);
+  }
+
+  if (user.status !== "active") {
+    throw new AppError("La cuenta no está activa.", 403);
+  }
+
+  // 6. Actualizar last_login y emitir tokens
+  const { getUserForAuth: getFullUser } = await import("../users/userRepository.js");
+  const fullUser = await getFullUser(email);
+
+  await updateLastLogin(fullUser.id);
+
+  const tokenPayload = {
+    id: fullUser.id,
+    email: fullUser.email,
+    role_id: fullUser.role_id,
+    role_name: fullUser.role_name,
+  };
+
+  const accessToken = signAccessToken(tokenPayload);
+  const refreshToken = signRefreshToken({ id: fullUser.id });
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresIn: "24h",
+    user: {
+      id: fullUser.id,
+      email: fullUser.email,
+      role_id: fullUser.role_id,
+      role_name: fullUser.role_name,
+    },
+  };
+};
+
+/**
+ * Reenvía el OTP de login administrativo.
+ * Solo para cuentas con rol Admin y status 'active'.
+ *
+ * @param {{ email: string }} params
+ */
+export const adminResendOtpService = async ({ email }) => {
+  const user = await findUserByEmailForAuth(email);
+
+  if (!user) {
+    throw new AppError("No existe una cuenta registrada con este correo.", 404);
+  }
+
+  if (user.role_name.toLowerCase() !== "admin") {
+    throw new AppError("Acceso denegado.", 403);
+  }
+
+  if (user.status !== "active") {
+    throw new AppError("La cuenta de administrador no está activa.", 403);
+  }
+
+  const otpPlain = String(crypto.randomInt(100000, 1000000));
+  const otp_hash = await bcrypt.hash(otpPlain, 10);
+
+  await upsertAdminLoginOtp({
+    email,
+    user_id: user.id,
+    otp_hash,
+    expires_minutes: 10,
+  });
+
   await sendOtpEmail(email, otpPlain);
 
   return {

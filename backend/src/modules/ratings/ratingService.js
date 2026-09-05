@@ -40,12 +40,18 @@ export const upsertRatingService = async (userId, body) => {
     }
   }
 
-  return ratingRepository.upsertRating({
+  const result = await ratingRepository.upsertRating({
     user_id: userId,
     supplier_id: supplier_id ?? null,
     product_id: product_id ?? null,
     score,
   });
+
+  if (supplier_id) {
+    await supplierRepository.updateSupplierAverageRating(supplier_id);
+  }
+
+  return result;
 };
 
 export const getRatingsService = async ({
@@ -106,6 +112,9 @@ export const updateRatingService = async (
   assertOwnerOrAdmin(rating, requestingUserId, requestingRoleName);
 
   const updated = await ratingRepository.updateRating(id, score);
+  if (rating.supplier_id) {
+    await supplierRepository.updateSupplierAverageRating(rating.supplier_id);
+  }
   return updated;
 };
 
@@ -122,6 +131,9 @@ export const deleteRatingService = async (
   assertOwnerOrAdmin(rating, requestingUserId, requestingRoleName);
 
   await ratingRepository.deleteRating(id);
+  if (rating.supplier_id) {
+    await supplierRepository.updateSupplierAverageRating(rating.supplier_id);
+  }
 };
 
 export const getRatingStatsService = async ({ supplier_id, product_id }) => {

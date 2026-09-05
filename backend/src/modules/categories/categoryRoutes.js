@@ -7,7 +7,7 @@ import {
   getCategoryQuerySchema,
 } from "../categories/category.Schema.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
-import { authenticate } from "../../middlewares/auth.middlewares.js";
+import { authenticate, authorize } from "../../middlewares/auth.middlewares.js";
 
 const router = Router();
 
@@ -352,6 +352,17 @@ router.put(
   "/:id",
   validateRequest(updateCategorySchema),
   categoryController.updateCategory,
+);
+
+/**
+ * DELETE /api/v1/categories/:id — Solo Administradores
+ * Elimina una categoría si no tiene productos ni subcategorías asociadas.
+ */
+router.delete(
+  "/:id",
+  authorize("Admin"),
+  validateRequest(categoryIdParamSchema),
+  categoryController.deleteCategory,
 );
 
 export default router;

@@ -64,3 +64,29 @@ export const resendOtpSchema = z.object({
   query: z.any(),
   params: z.any(),
 });
+
+export const adminVerifySchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .trim()
+      .email("El correo electrónico no tiene un formato válido"),
+    code: z
+      .string()
+      .length(6, "El código OTP debe tener exactamente 6 dígitos")
+      .regex(/^\d{6}$/, "El código OTP debe contener solo dígitos"),
+  }),
+  query: z.any(),
+  params: z.any(),
+});
+
+export const adminResendSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .trim()
+      .email("El correo electrónico no tiene un formato válido"),
+  }),
+  query: z.any(),
+  params: z.any(),
+});

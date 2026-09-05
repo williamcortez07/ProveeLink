@@ -32,7 +32,9 @@ function validateFile(file) {
     );
   }
   if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    throw new Error(`La imagen "${file.name}" supera el límite de ${MAX_SIZE_MB} MB.`);
+    throw new Error(
+      `La imagen "${file.name}" supera el límite de ${MAX_SIZE_MB} MB.`,
+    );
   }
 }
 
@@ -104,9 +106,15 @@ export async function uploadProductImage(file, ownerId) {
     });
 
   if (uploadError) {
-    console.error("[storageService] Error al subir imagen de producto:", uploadError);
+    console.error(
+      "[storageService] Error al subir imagen de producto:",
+      uploadError,
+    );
 
-    if (uploadError.message?.includes("row-level security") || uploadError.message?.includes("policy")) {
+    if (
+      uploadError.message?.includes("row-level security") ||
+      uploadError.message?.includes("policy")
+    ) {
       throw new Error(
         "No tienes permisos para subir imágenes. Verifica la configuración del bucket en Supabase (política RLS de INSERT para anon).",
       );
@@ -121,10 +129,32 @@ export async function uploadProductImage(file, ownerId) {
 
   const { data } = supabase.storage.from(PRODUCT_BUCKET).getPublicUrl(filePath);
   if (!data?.publicUrl) {
-    throw new Error("No se pudo obtener la URL pública de la imagen del producto.");
+    throw new Error(
+      "No se pudo obtener la URL pública de la imagen del producto.",
+    );
   }
 
   return data.publicUrl;
+}
+
+export async function uploadMultipleProductImages(files, ownerId, onProgress) {
+  const urls = [];
+  const errors = [];
+
+  for (const file of files) {
+    try {
+      const url = await uploadProductImage(file, ownerId);
+      urls.push(url);
+      onProgress?.(urls.length, files.length, url);
+    } catch (error) {
+      errors.push({
+        file: file.name,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  return { urls, errors };
 }
 
 /**
@@ -140,27 +170,48 @@ export async function uploadProductImage(file, ownerId) {
  * @param {Function} [onProgress] - Callback opcional: (uploaded, total, url) => void
  * @returns {Promise<{urls: string[], errors: {file: string, error: string}[]}>}
  */
-export async function uploadMultipleProductImages(files, ownerId, onProgress) {
-  if (!Array.isArray(files) || files.length === 0) {
-    return { urls: [], errors: [] };
+export async function uploadVerificationEvidence(file, requestId) {
+  validateFile(file);
+  const filePath = buildFilePath(requestId, file);
+  const VERIFICATION_BUCKET = "verification";
+
+  let { error: uploadError } = await supabase.storage
+    .from(VERIFICATION_BUCKET)
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: true,
+      contentType: file.type,
+    });
+
+  // Fallback al bucket 'products' si 'verification' no existe aún
+  let targetBucket = VERIFICATION_BUCKET;
+  if (
+    uploadError &&
+    (uploadError.message?.includes("not found") ||
+      uploadError.message?.includes("Bucket"))
+  ) {
+    console.warn(
+      "[storageService] Bucket 'verification' no encontrado, usando 'products' como fallback.",
+    );
+    targetBucket = PRODUCT_BUCKET;
+    const { error: fallbackErr } = await supabase.storage
+      .from(targetBucket)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: file.type,
+      });
+    uploadError = fallbackErr;
   }
 
-  const urls = [];
-  const errors = [];
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    try {
-      const url = await uploadProductImage(file, ownerId);
-      urls.push(url);
-      if (typeof onProgress === "function") {
-        onProgress(i + 1, files.length, url);
-      }
-    } catch (err) {
-      console.error(`[storageService] Error subiendo "${file.name}":`, err.message);
-      errors.push({ file: file.name, error: err.message });
-    }
+  if (uploadError) {
+    throw new Error(`Error al subir evidencia: ${uploadError.message}`);
   }
 
-  return { urls, errors };
+  const { data } = supabase.storage.from(targetBucket).getPublicUrl(filePath);
+  if (!data?.publicUrl) {
+    throw new Error("No se pudo obtener la URL pública de la evidencia.");
+  }
+
+  return data.publicUrl;
 }

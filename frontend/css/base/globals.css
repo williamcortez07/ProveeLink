@@ -354,6 +354,67 @@ button {
   margin-bottom: 8px;
 }
 
+/* Badge de proveedor verificado */
+.badge-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  padding: 3px 9px 3px 6px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.badge-verified svg {
+  flex-shrink: 0;
+}
+.badge-verified--compact {
+  padding: 4px;
+  border-radius: 50%;
+  font-size: 0;
+  width: 20px;
+  height: 20px;
+  justify-content: center;
+}
+.badge-verified--inline {
+  background: transparent;
+  border: none;
+  color: #15803d;
+  padding: 0;
+  font-size: 0.82rem;
+}
+
+/* Badge de no verificado */
+.badge-unverified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 3px 9px 3px 6px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.badge-unverified svg { flex-shrink: 0; }
+.badge-unverified--compact {
+  padding: 4px;
+  border-radius: 50%;
+  font-size: 0;
+  width: 20px;
+  height: 20px;
+  justify-content: center;
+}
+
 .icon-box-square {
   width: 48px;
   height: 48px;

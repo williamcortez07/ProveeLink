@@ -77,3 +77,26 @@ export const upgradeRole = asyncWrapper(async (req, res) => {
     },
   });
 });
+
+export const adminVerifyOtp = asyncWrapper(async (req, res) => {
+  const { email, code } = req.body;
+  const result = await authService.adminVerifyOtpService({ email, otp: code });
+  res.status(200).json({
+    success: true,
+    message: "Verificación administrativa exitosa. Bienvenido al panel de administración.",
+    data: {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      expiresIn: result.expiresIn,
+      user: result.user,
+    },
+  });
+});
+
+export const adminResendOtp = asyncWrapper(async (req, res) => {
+  const result = await authService.adminResendOtpService(req.body);
+  res.status(200).json({
+    success: true,
+    message: result.message,
+  });
+});
