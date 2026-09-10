@@ -12,7 +12,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   DB_HOST: z.string().min(1, 'DB_HOST es requerido'),
-  DB_PORT: z.string().default('5434').transform(Number),
+  DB_PORT: z.string().default('5432').transform(Number),
   DB_USER: z.string().min(1, 'DB_USER es requerido'),
   DB_PASSWORD: z.string().min(1, 'DB_PASSWORD es requerido'),
   DB_NAME: z.string().min(1, 'DB_NAME es requerido'),
@@ -21,15 +21,13 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   JWT_EXPIRES_IN: z.string().default('24h'),
 
-  // ── SMTP (Nodemailer) ──────────────────────────────────────────
-  MAIL_HOST: z.string().min(1, 'MAIL_HOST es requerido'),
-  MAIL_PORT: z.string().default('465').transform(Number),
-  MAIL_SECURE: z.string().default('true').transform((v) => v === 'true'),
-  MAIL_USER: z.string().min(1, 'MAIL_USER es requerido'),
-  MAIL_PASS: z.string().min(1, 'MAIL_PASS es requerido'),
+  // ── Email (Resend API — no usa SMTP, compatible con Render) ───────
+  RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY es requerido'),
+  // Formato para Resend con dominio verificado: "ProveeLink <info@tudominio.com>"
+  // Para pruebas sin dominio propio: "onboarding@resend.dev"
   MAIL_FROM: z.string().min(1, 'MAIL_FROM es requerido'),
 
-  // ── CORS ───────────────────────────────────────────────────────
+  // ── CORS ───────────────────────────────────────────────────────────
   // Orígenes separados por coma, o '*' para permitir todos.
   CORS_ORIGIN: z.string().default('*'),
 });
