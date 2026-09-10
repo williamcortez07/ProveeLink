@@ -5,11 +5,16 @@ import { AppError } from "./AppError.js";
 
 const transporter = nodemailer.createTransport({
   host: env.MAIL_HOST,
-  port: env.MAIL_PORT,
-  secure: env.MAIL_SECURE,
+  port: env.MAIL_PORT,   // debe ser 587 en producción (Render bloquea 465)
+  secure: env.MAIL_SECURE, // false para puerto 587 (STARTTLS)
+  requireTLS: true,       // fuerza upgrade TLS en puerto 587
+  family: 4,              // fuerza IPv4 — Render no soporta IPv6 saliente
   auth: {
     user: env.MAIL_USER,
     pass: env.MAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false, // evita errores de certificado en algunos hosts
   },
 });
 
@@ -56,7 +61,6 @@ export const sendOtpEmail = async (toEmail, otpCode) => {
     await transporter.sendMail(mailOptions);
     logger.info({ to: toEmail }, "OTP enviado por correo");
   } catch (err) {
-    // Logueamos el error SMTP detallado para diagnóstico en Render
     logger.error(
       {
         smtp_error: err.message,
@@ -67,7 +71,6 @@ export const sendOtpEmail = async (toEmail, otpCode) => {
       },
       "Error SMTP al enviar OTP"
     );
-    // AppError para que el errorHandler lo muestre correctamente (no genérico 500)
     throw new AppError(`Error SMTP: ${err.message}`, 503);
   }
 };
