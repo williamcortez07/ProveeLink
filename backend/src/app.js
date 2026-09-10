@@ -21,16 +21,30 @@ setupSwagger(app);
 
 // ── CORS ─────────────────────────────────────────────────────────
 // Lee CORS_ORIGIN del .env. Soporta '*' o lista de dominios separados por coma.
+// Normaliza removiendo barras diagonales finales ('/') para evitar fallos con los navegadores.
 const rawOrigins = env.CORS_ORIGIN.trim();
+const allowedOrigins =
+  rawOrigins === "*"
+    ? "*"
+    : rawOrigins
+        .split(",")
+        .map((o) => o.trim().replace(/\/+$/, ""))
+        .filter(Boolean);
+
 const corsOptions = {
-  origin:
-    rawOrigins === "*"
-      ? "*"
-      : rawOrigins.split(",").map((o) => o.trim()),
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins === "*") {
+      return callback(null, true);
+    }
+    const normalizedOrigin = origin.replace(/\/+$/, "");
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origen no permitido por CORS: ${origin}`));
+  },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  // credentials solo funciona cuando origin NO es '*'
-  credentials: rawOrigins !== "*",
+  credentials: true,
 };
 app.use(cors(corsOptions));
 
