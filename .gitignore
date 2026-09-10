@@ -1,0 +1,45 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# SECRETOS Y VARIABLES DE ENTORNO — NUNCA SUBIR AL REPOSITORIO
+# ──────────────────────────────────────────────────────────────────────────────
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+backend/src/.env
+!.env.example
+!**/.env.example
+
+# Credenciales y llaves
+*.pem
+*.key
+*.cert
+*.crt
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DEPENDENCIAS Y BUILD
+# ──────────────────────────────────────────────────────────────────────────────
+node_modules/
+*/node_modules/
+**/node_modules/
+dist/
+build/
+.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SISTEMA OPERATIVO Y EDITORES
+# ──────────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+.qodo/

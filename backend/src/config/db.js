@@ -1,6 +1,6 @@
-import pg from 'pg';
-import { env } from './environment.js';
-import { logger } from '../utils/logger.js';
+import pg from "pg";
+import { env } from "./environment.js";
+import { logger } from "../utils/logger.js";
 
 const { Pool } = pg;
 
@@ -22,22 +22,22 @@ const poolConfig = {
   connectionTimeoutMillis: 5000,
 };
 
-// Configuración SSL para producción
-if (env.NODE_ENV === 'production') {
+// Configuración SSL explícita para proveedores cloud como Neon
+if (env.DB_SSL_REJECT_UNAUTHORIZED === "1") {
   poolConfig.ssl = {
-    rejectUnauthorized: env.DB_SSL_REJECT_UNAUTHORIZED === '1'
+    rejectUnauthorized: env.DB_SSL_REJECT_UNAUTHORIZED === "1",
   };
 }
 
 const pool = new Pool(poolConfig);
 
-pool.on('connect', (client) => {
-  logger.debug('Nueva conexión a PostgreSQL establecida');
+pool.on("connect", (client) => {
+  logger.debug("Nueva conexión a PostgreSQL establecida");
 });
 
 // Captura errores inesperados en conexiones ociosas
-pool.on('error', (err, client) => {
-  logger.error({ err }, 'Error inesperado en el pool de PostgreSQL');
+pool.on("error", (err, client) => {
+  logger.error({ err }, "Error inesperado en el pool de PostgreSQL");
 });
 
 // Función de consulta con retry (backoff exponencial)
@@ -55,7 +55,7 @@ const queryWithRetry = async (text, params, retries = 3) => {
       logger.error({
         msg: `Fallo en consulta BD, reintento ${currentTry}/${retries}`,
         query: text,
-        error: error.message
+        error: error.message,
       });
 
       if (currentTry === retries) {
@@ -63,7 +63,9 @@ const queryWithRetry = async (text, params, retries = 3) => {
       }
 
       // Backoff exponencial: 100ms, 200ms, 400ms...
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, currentTry) * 50));
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.pow(2, currentTry) * 50),
+      );
     }
   }
 };
@@ -72,14 +74,10 @@ const queryWithRetry = async (text, params, retries = 3) => {
 const closePool = async () => {
   try {
     await pool.end();
-    logger.info('Pool de conexiones a PostgreSQL cerrado correctamente');
+    logger.info("Pool de conexiones a PostgreSQL cerrado correctamente");
   } catch (err) {
-    logger.error({ err }, 'Error al cerrar el pool de PostgreSQL');
+    logger.error({ err }, "Error al cerrar el pool de PostgreSQL");
   }
 };
 
-export {
-  pool,
-  queryWithRetry as query,
-  closePool
-};
+export { pool, queryWithRetry as query, closePool };
