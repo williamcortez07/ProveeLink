@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { env } from "../config/environment.js";
 import { logger } from "./logger.js";
+import { AppError } from "./AppError.js";
 
 const transporter = nodemailer.createTransport({
   host: env.MAIL_HOST,
@@ -14,7 +15,10 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify((err) => {
   if (err) {
-    logger.warn({ err }, "SMTP no disponible — los correos no se enviarán");
+    logger.warn(
+      { smtp_error: err.message, smtp_code: err.code },
+      `SMTP no disponible — ${err.message}`
+    );
   } else {
     logger.info("Conexión SMTP verificada correctamente");
   }
@@ -52,9 +56,18 @@ export const sendOtpEmail = async (toEmail, otpCode) => {
     await transporter.sendMail(mailOptions);
     logger.info({ to: toEmail }, "OTP enviado por correo");
   } catch (err) {
-    logger.error({ err, to: toEmail }, "Error al enviar OTP por correo");
-    throw new Error(
-      "No se pudo enviar el correo de verificación. Intenta más tarde.",
+    // Logueamos el error SMTP detallado para diagnóstico en Render
+    logger.error(
+      {
+        smtp_error: err.message,
+        smtp_code: err.code,
+        smtp_command: err.command,
+        smtp_response: err.response,
+        to: toEmail,
+      },
+      "Error SMTP al enviar OTP"
     );
+    // AppError para que el errorHandler lo muestre correctamente (no genérico 500)
+    throw new AppError(`Error SMTP: ${err.message}`, 503);
   }
 };
