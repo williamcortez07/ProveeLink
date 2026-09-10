@@ -5,12 +5,14 @@
  * Sigue el principio de Responsabilidad Única (SRP).
  */
 
+import { API_BASE_URL } from "./config.js";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIGURACIÓN BASE
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** URL base de la API. Modificar aquí para cambiar de entorno. */
-const API_BASE = "http://localhost:3000/api/v1/auth";
+/** URL base del módulo de autenticación. */
+const API_BASE = `${API_BASE_URL}/auth`;
 
 /**
  * Mapa de endpoints disponibles.

@@ -5,7 +5,7 @@
  * NUNCA llamar fetch() directamente desde los módulos de UI.
  */
 
-const API_BASE_URL = "http://localhost:3000/api/v1";
+import { API_BASE_URL } from "../services/config.js";
 
 const ADMIN_ENDPOINTS = Object.freeze({
   LOGIN: `${API_BASE_URL}/auth/login`,
