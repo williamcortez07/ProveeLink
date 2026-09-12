@@ -5,7 +5,7 @@
  * respuestas de API REST y fallback vectorial SVG para imágenes cuando no hay internet.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const STATIC_CACHE_NAME = `proveelink-static-${CACHE_VERSION}`;
 const IMAGE_CACHE_NAME = `proveelink-images-${CACHE_VERSION}`;
 const DATA_CACHE_NAME = `proveelink-data-${CACHE_VERSION}`;
