@@ -107,33 +107,15 @@ function isTokenExpired(payload) {
 }
 
 function resolveLoginPath() {
-  const pathname = window.location.pathname;
-  const idx = pathname.indexOf("/frontend/");
-  if (idx !== -1) {
-    return pathname.substring(0, idx) + "/frontend/pages/admin/login.html";
-  }
-  return "/frontend/pages/admin/login.html";
+  return "/pages/admin/login.html";
 }
 
 function resolveDashboardPath() {
-  const pathname = window.location.pathname;
-  const idx = pathname.indexOf("/frontend/");
-  if (idx !== -1) {
-    return pathname.substring(0, idx) + "/frontend/pages/admin/dashboard.html";
-  }
-  return "/frontend/pages/admin/dashboard.html";
+  return "/pages/admin/dashboard.html";
 }
 
 function resolveCommonLoginPath() {
-  const pathname = window.location.pathname;
-  const idx = pathname.indexOf("/frontend/");
-  if (idx !== -1) {
-    return pathname.substring(0, idx) + "/frontend/index.html";
-  }
-  if (pathname.endsWith("/frontend")) {
-    return pathname + "/index.html";
-  }
-  return "/frontend/index.html";
+  return "/index.html";
 }
 
 export const AdminSession = {

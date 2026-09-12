@@ -26,21 +26,16 @@
 
 import { TokenManager, RoleManager, ROLES } from "./api.js";
 import { setFavicon } from "../pwa.js";
-function getBasePath() {
-  const parts = window.location.pathname.split("/").filter((p) => p !== "");
-  const dirParts = parts.slice(0, -1);
-  const pagesIdx = dirParts.indexOf("pages");
-
-  if (pagesIdx === -1) {
-    return "./";
-  }
-  const depth = dirParts.length - pagesIdx;
-  return "../".repeat(depth);
-}
-
+/**
+ * Construye una URL absoluta desde la raíz del sitio.
+ * Siempre usa rutas absolutas (comenzando con "/") para ser
+ * independiente de la profundidad del directorio actual.
+ * @param {string} route - Ruta relativa a la raíz del frontend (ej: "pages/home.html").
+ * @returns {string} URL absoluta (ej: "/pages/home.html").
+ */
 function resolveRoute(route) {
-  const cleanRoute = route.replace(/^\.\//, ""); // quitar "./" inicial
-  return getBasePath() + cleanRoute;
+  const cleanRoute = route.replace(/^\.\//, ""); // quitar "./" inicial si existe
+  return "/" + cleanRoute;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -190,6 +185,7 @@ export const Router = {
 
     if (!isAlreadyAtLogin) {
       TokenManager.logout();
+      window.location.href = "/index.html";
     }
   },
 };

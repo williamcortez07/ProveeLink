@@ -85,30 +85,14 @@ const USER_ENDPOINTS = Object.freeze({
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Calcula la URL absoluta al index.html del frontend (página de login)
- * independientemente de cuántos niveles de profundidad tenga la página actual.
- *
- * Estrategia: busca el segmento '/frontend/' en el pathname y reconstruye
- * la URL hasta ese punto. Funciona desde index.html, pages/*, pages/admin/*, etc.
- *
- * Ejemplos:
- *   /frontend/index.html          → /frontend/index.html
- *   /frontend/pages/home.html     → /frontend/index.html
- *   /frontend/pages/admin/x.html  → /frontend/index.html
+ * Retorna la URL absoluta al index.html del frontend (página de login).
+ * Con Vercel configurado para servir frontend/ como raíz,
+ * el path siempre es simplemente "/index.html".
  *
  * @returns {string} URL absoluta al login de la app.
  */
 function resolveIndexPath() {
-  const pathname = window.location.pathname;
-  const idx = pathname.indexOf("/frontend/");
-  if (idx !== -1) {
-    return pathname.substring(0, idx) + "/frontend/index.html";
-  }
-  // Si estamos exactamente en /frontend (sin trailing slash)
-  if (pathname.endsWith("/frontend")) {
-    return pathname + "/index.html";
-  }
-  return "/index.html"; // fallback
+  return "/index.html";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { env } from "../config/environment.js";
 import { logger } from "./logger.js";
 import { AppError } from "./AppError.js";
-
+  
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
 /**

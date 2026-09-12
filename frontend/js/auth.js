@@ -669,9 +669,9 @@ const AuthManager = {
             "Cuenta de administrador detectada. Redirigiendo al panel de administración…",
           );
           setTimeout(() => {
-            // Siempre relativo a index.html (raíz del frontend)
+            // Siempre absoluta desde la raíz del frontend
             window.location.href =
-              `./pages/admin/login.html?email=${encodeURIComponent(adminEmail)}&otp_sent=1`;
+              `/pages/admin/login.html?email=${encodeURIComponent(adminEmail)}&otp_sent=1`;
           }, 1800);
           return; // detiene el flujo normal de login
         }
