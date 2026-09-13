@@ -9,21 +9,13 @@
 const SIDEBAR_SELECTOR = "#sidebar-target";
 
 /**
- * Calcula la ruta al fragmento de componente de forma dinámica.
- * Funciona desde cualquier profundidad de directorio (pages/X.html, pages/sub/X.html…).
- * Busca el segmento '/pages/' en la URL actual y construye el path a 'components/'.
+ * Calcula la ruta al fragmento de componente de forma absoluta.
+ * Siempre apunta a /pages/components/ para evitar inconsistencias de rutas relativas.
  * @param {string} filename - Nombre del archivo HTML del componente.
  * @returns {string} URL absoluta al componente.
  */
 function resolveComponentPath(filename) {
-  const path = window.location.pathname;
-  const marker = "/pages/";
-  const idx = path.indexOf(marker);
-  if (idx !== -1) {
-    return path.substring(0, idx + marker.length) + "components/" + filename;
-  }
-  // Fallback: asumir que estamos en la raíz del frontend (index.html)
-  return "./pages/components/" + filename;
+  return `/pages/components/${filename}`;
 }
 
 async function loadSidebar() {
@@ -48,19 +40,19 @@ function getAppLayout() {
 
 function openSidebar() {
   const appLayout = getAppLayout();
-  const menuBtn = document.getElementById("menuToggle");
   if (!appLayout) return;
 
   appLayout.classList.add("sidebar-mobile-open");
+  const menuBtn = document.getElementById("menuToggle");
   if (menuBtn) menuBtn.setAttribute("aria-expanded", "true");
 }
 
 function closeSidebar() {
   const appLayout = getAppLayout();
-  const menuBtn = document.getElementById("menuToggle");
   if (!appLayout) return;
 
   appLayout.classList.remove("sidebar-mobile-open");
+  const menuBtn = document.getElementById("menuToggle");
   if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
 }
 
@@ -95,15 +87,14 @@ function setActiveSidebarLink() {
 function initSidebarMenu() {
   setActiveSidebarLink();
 
-  const appLayout = getAppLayout();
   const sidebar = document.querySelector(".main-sidebar");
   const closeBtn = document.getElementById("sidebarCloseBtn");
   const backdrop = document.getElementById("sidebarBackdrop");
-  const menuBtn = document.getElementById("menuToggle");
 
   // Botón "X" de cierre
   if (closeBtn) {
     closeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       e.stopPropagation();
       closeSidebar();
     });
@@ -112,31 +103,11 @@ function initSidebarMenu() {
   // Backdrop overlay para cerrar en móvil
   if (backdrop) {
     backdrop.addEventListener("click", (e) => {
+      e.preventDefault();
       e.stopPropagation();
       closeSidebar();
     });
   }
-
-  // Evento directo al botón de menú hamburguesa si ya está presente
-  if (menuBtn) {
-    menuBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleSidebar();
-    });
-  }
-
-  // Clic fuera del sidebar para cerrar en móvil
-  document.addEventListener("click", (event) => {
-    if (!appLayout || !appLayout.classList.contains("sidebar-mobile-open"))
-      return;
-    if (
-      sidebar &&
-      !sidebar.contains(event.target) &&
-      (!menuBtn || !menuBtn.contains(event.target))
-    ) {
-      closeSidebar();
-    }
-  });
 
   // Tecla Escape para cerrar
   document.addEventListener("keydown", (event) => {
@@ -151,8 +122,26 @@ function initSidebarMenu() {
   }
 }
 
+// Clic fuera del sidebar para cerrar en móvil (evaluado dinámicamente)
+document.addEventListener("click", (event) => {
+  const appLayout = getAppLayout();
+  if (!appLayout || !appLayout.classList.contains("sidebar-mobile-open"))
+    return;
+
+  const sidebar = document.querySelector(".main-sidebar");
+  const menuBtn = document.getElementById("menuToggle");
+
+  if (sidebar && sidebar.contains(event.target)) return;
+  if (menuBtn && (menuBtn === event.target || menuBtn.contains(event.target))) return;
+
+  closeSidebar();
+});
+
 // Escuchar evento emitido desde navbar.js
-document.addEventListener("navbar:toggle-sidebar", toggleSidebar);
+document.addEventListener("navbar:toggle-sidebar", (e) => {
+  e.stopPropagation();
+  toggleSidebar();
+});
 
 // API Global
 window.SidebarManager = {
@@ -161,4 +150,8 @@ window.SidebarManager = {
   toggle: toggleSidebar,
 };
 
-document.addEventListener("DOMContentLoaded", loadSidebar);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", loadSidebar);
+} else {
+  loadSidebar();
+}

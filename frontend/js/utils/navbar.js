@@ -6,19 +6,13 @@
 const NAVBAR_SELECTOR = "#navbar-target";
 
 /**
- * Calcula la ruta al fragmento de componente de forma dinámica.
- * Funciona desde cualquier profundidad de directorio.
+ * Calcula la ruta al fragmento de componente de forma absoluta.
+ * Siempre apunta a /pages/components/ para evitar inconsistencias de rutas relativas.
  * @param {string} filename
  * @returns {string}
  */
 function resolveComponentPath(filename) {
-  const path = window.location.pathname;
-  const marker = "/pages/";
-  const idx = path.indexOf(marker);
-  if (idx !== -1) {
-    return path.substring(0, idx + marker.length) + "components/" + filename;
-  }
-  return "./pages/components/" + filename;
+  return `/pages/components/${filename}`;
 }
 
 async function loadNavbar() {
@@ -26,7 +20,7 @@ async function loadNavbar() {
   if (!target) return;
 
   try {
-    const response = await fetch(resolveComponentPath("navbar.html"));
+    const response = await fetch(`${resolveComponentPath("navbar.html")}?v=${Date.now()}`);
     if (!response.ok)
       throw new Error(`Error cargando navbar: ${response.status}`);
     target.innerHTML = await response.text();
@@ -87,10 +81,11 @@ function bindMenuToggle() {
     } else {
       document.dispatchEvent(new CustomEvent("navbar:toggle-sidebar"));
     }
-
-    const isExpanded = btn.getAttribute("aria-expanded") === "true";
-    btn.setAttribute("aria-expanded", String(!isExpanded));
   });
 }
 
-document.addEventListener("DOMContentLoaded", loadNavbar);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", loadNavbar);
+} else {
+  loadNavbar();
+}

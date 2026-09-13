@@ -11,19 +11,13 @@ const FOOTER_SELECTOR = "#footer-target";
 const BACK_TO_TOP_SCROLL_THRESHOLD = 240;
 
 /**
- * Calcula la ruta al fragmento de componente de forma dinámica.
- * Funciona desde cualquier profundidad de directorio.
+ * Calcula la ruta al fragmento de componente de forma absoluta.
+ * Siempre apunta a /pages/components/ para evitar inconsistencias de rutas relativas.
  * @param {string} filename
  * @returns {string}
  */
 function resolveComponentPath(filename) {
-  const path = window.location.pathname;
-  const marker = "/pages/";
-  const idx = path.indexOf(marker);
-  if (idx !== -1) {
-    return path.substring(0, idx + marker.length) + "components/" + filename;
-  }
-  return "./pages/components/" + filename;
+  return `/pages/components/${filename}`;
 }
 
 async function loadFooter() {
@@ -70,4 +64,8 @@ function initFooter() {
   bindBackToTop();
 }
 
-document.addEventListener("DOMContentLoaded", loadFooter);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", loadFooter);
+} else {
+  loadFooter();
+}
