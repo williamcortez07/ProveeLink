@@ -2,8 +2,6 @@
 # SECRETOS — nunca subir al repositorio
 # ──────────────────────────────────────────────────────────────────────────────
 
-# Claves de Supabase (anon key y URL del proyecto)
-js/services/supabase.js
 
 # Variables de entorno
 .env
