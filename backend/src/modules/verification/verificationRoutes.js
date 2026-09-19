@@ -25,18 +25,21 @@ router.get("/plans", verificationController.getPlans);
 // Webhook de PayPal (sin JWT, validación por firma criptográfica)
 router.post("/webhook", verificationController.handleWebhook);
 
-// ─── PROVEEDOR (requiere login + rol 'supplier') ──────────────────────────────
+// ─── PROVEEDOR (requiere login + rol 'Proveedor') ─────────────────────────────
+// Nota: el nombre del rol viene exactamente como está en la tabla public.roles
+// de Neon: "Proveedor" (con mayúscula, en español). El middleware authorize()
+// convierte a MAYÚSCULAS antes de comparar, por lo que el match es case-insensitive.
 router.get(
   "/requests/me",
   authenticate,
-  authorize("supplier"),
+  authorize("Proveedor"),
   verificationController.getMyRequest
 );
 
 router.post(
   "/requests",
   authenticate,
-  authorize("supplier"),
+  authorize("Proveedor"),
   validateRequest(createRequestSchema),
   verificationController.createRequest
 );
@@ -44,7 +47,7 @@ router.post(
 router.put(
   "/requests/:id",
   authenticate,
-  authorize("supplier"),
+  authorize("Proveedor"),
   validateRequest(updateRequestSchema),
   verificationController.updateRequest
 );
@@ -52,7 +55,7 @@ router.put(
 router.post(
   "/requests/:id/evidence",
   authenticate,
-  authorize("supplier"),
+  authorize("Proveedor"),
   validateRequest(addEvidenceSchema),
   verificationController.addEvidence
 );
@@ -60,7 +63,7 @@ router.post(
 router.delete(
   "/requests/:id/evidence/:evidenceId",
   authenticate,
-  authorize("supplier"),
+  authorize("Proveedor"),
   validateRequest(removeEvidenceSchema),
   verificationController.removeEvidence
 );
@@ -68,7 +71,7 @@ router.delete(
 router.post(
   "/requests/:id/subscription",
   authenticate,
-  authorize("supplier"),
+  authorize("Proveedor"),
   validateRequest(selectPlanSchema),
   verificationController.selectPlan
 );
@@ -76,15 +79,15 @@ router.post(
 router.post(
   "/requests/:id/payment",
   authenticate,
-  authorize("supplier"),
+  authorize("Proveedor"),
   verificationController.confirmPayment
 );
 
-// ─── ADMIN (requiere login + rol 'admin') ─────────────────────────────────────
+// ─── ADMIN (requiere login + rol 'Admin') ─────────────────────────────────────
 router.get(
   "/admin/requests",
   authenticate,
-  authorize("admin"),
+  authorize("Admin"),
   validateRequest(adminGetRequestsSchema),
   verificationController.adminGetRequests
 );
@@ -92,7 +95,7 @@ router.get(
 router.get(
   "/admin/requests/:id",
   authenticate,
-  authorize("admin"),
+  authorize("Admin"),
   validateRequest(requestIdParam),
   verificationController.adminGetRequestDetail
 );
@@ -100,7 +103,7 @@ router.get(
 router.patch(
   "/admin/requests/:id/approve",
   authenticate,
-  authorize("admin"),
+  authorize("Admin"),
   validateRequest(requestIdParam),
   verificationController.adminApproveRequest
 );
@@ -108,7 +111,7 @@ router.patch(
 router.patch(
   "/admin/requests/:id/reject",
   authenticate,
-  authorize("admin"),
+  authorize("Admin"),
   validateRequest(rejectRequestSchema),
   verificationController.adminRejectRequest
 );
