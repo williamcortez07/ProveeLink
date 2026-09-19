@@ -32,6 +32,12 @@ const envSchema = z.object({
   // ── CORS ───────────────────────────────────────────────────────────
   // Orígenes separados por coma, o '*' para permitir todos.
   CORS_ORIGIN: z.string().default('*'),
+
+  // ── PayPal ──────────────────────────────────────────────────────────
+  PAYPAL_MODE: z.enum(['sandbox', 'live']).default('sandbox'),
+  PAYPAL_CLIENT_ID: z.string().optional().default('sb'),
+  PAYPAL_CLIENT_SECRET: z.string().optional().default(''),
+  PAYPAL_WEBHOOK_ID: z.string().optional().default(''),
 });
 
 const _env = envSchema.safeParse(process.env);

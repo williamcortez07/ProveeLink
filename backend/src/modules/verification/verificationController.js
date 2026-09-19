@@ -19,6 +19,18 @@ const getSupplierByUserId = async (userId) => {
   return result.rows[0] || null;
 };
 
+// ─── CONFIGURACIÓN PÚBLICA ───────────────────────────────────────────────────
+
+export const getPublicConfig = asyncWrapper(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      paypal_client_id: process.env.PAYPAL_CLIENT_ID || "sb",
+      paypal_mode: process.env.PAYPAL_MODE || "sandbox",
+    },
+  });
+});
+
 // ─── PLANES ────────────────────────────────────────────────────────────────────
 
 export const getPlans = asyncWrapper(async (req, res) => {
@@ -152,17 +164,36 @@ export const initiatePayment = asyncWrapper(async (req, res) => {
       404
     );
   }
+
+  // Si se envía paypal_order_id en el body, se procesa la confirmación del pago
+  if (req.body && req.body.paypal_order_id) {
+    const result = await verificationService.confirmPayment(
+      req.params.id,
+      supplier.id,
+      req.body.paypal_order_id,
+      paypalService
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Pago confirmado exitosamente. Tu solicitud pasó a revisión.",
+      data: result,
+    });
+  }
+
   const result = await verificationService.initiatePayment(
     req.params.id,
     supplier.id,
     paypalService
   );
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Orden de pago creada exitosamente",
     data: result,
   });
 });
+
+export const confirmPayment = initiatePayment;
+
 
 // ─── WEBHOOK (SIN AUTENTICACIÓN) ──────────────────────────────────────────────
 

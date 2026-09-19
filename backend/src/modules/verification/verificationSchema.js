@@ -129,3 +129,17 @@ export const adminGetRequestsSchema = z.object({
   }),
   params: z.any(),
 });
+
+// ─── confirmPaymentSchema ───────────────────────────────────────────────────
+export const confirmPaymentSchema = z.object({
+  body: z.object({
+    paypal_order_id: z
+      .string({ required_error: "El ID de la orden de PayPal es requerido" })
+      .min(1, "El ID de la orden de PayPal no puede estar vacío"),
+  }),
+  query: z.any(),
+  params: z.object({
+    id: z.string().uuid("El ID de la solicitud debe ser un UUID válido"),
+  }),
+});
+

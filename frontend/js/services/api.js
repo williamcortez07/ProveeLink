@@ -337,7 +337,8 @@ function buildHeaders(extra = {}) {
  * @throws {Error}               - Con `.status` y `.data` enriquecidos.
  */
 async function request(url, options = {}) {
-  if (!TokenManager.isAuthenticated()) {
+  const requiresAuth = options.requiresAuth !== false;
+  if (requiresAuth && !TokenManager.isAuthenticated()) {
     // Sesión inválida: redirige al login
     TokenManager.logout();
     throw new Error("Sesión expirada. Por favor inicia sesión de nuevo.");
@@ -358,7 +359,7 @@ async function request(url, options = {}) {
     error.data = data;
 
     // 401 → sesión inválida en servidor
-    if (response.status === 401) {
+    if (response.status === 401 && requiresAuth) {
       TokenManager.logout();
     }
 
@@ -366,6 +367,21 @@ async function request(url, options = {}) {
   }
 
   return data;
+}
+
+/**
+ * Petición genérica autenticada al API.
+ * Prefija automáticamente API_BASE_URL si la ruta es relativa.
+ *
+ * @param {string} endpoint - Ruta relativa (ej: "/verification/requests/me") o URL absoluta.
+ * @param {RequestInit} [options={}] - Opciones de fetch.
+ * @returns {Promise<object>}
+ */
+export async function apiFetch(endpoint, options = {}) {
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+  return request(url, options);
 }
 
 /** GET helper */
@@ -381,6 +397,7 @@ const patch = (url, body) =>
   request(url, { method: "PATCH", body: JSON.stringify(body) });
 /** DELETE helper */
 const del = (url) => request(url, { method: "DELETE" });
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HOME API — funciones de negocio para el módulo Home

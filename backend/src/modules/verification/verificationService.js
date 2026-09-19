@@ -193,6 +193,99 @@ export const initiatePayment = async (requestId, supplierId, paypalService) => {
   return { payment_url: approvalUrl, paypal_order_id: orderId };
 };
 
+export const confirmPayment = async (requestId, supplierId, paypalOrderId, paypalService) => {
+  const request = await repo.getVerificationRequestById(requestId);
+  if (!request) {
+    throw new AppError("Solicitud de verificación no encontrada", 404);
+  }
+  if (request.supplier_id !== supplierId) {
+    throw new AppError("No tienes permiso para gestionar esta solicitud", 403);
+  }
+  if (!["pending_payment", "draft"].includes(request.status)) {
+    throw new AppError(
+      "La solicitud debe estar en estado 'pending_payment' o 'draft' para registrar el pago",
+      400
+    );
+  }
+
+  const subscription = await repo.getSubscriptionByRequest(requestId);
+  if (!subscription) {
+    throw new AppError("No hay suscripción asociada a esta solicitud", 404);
+  }
+
+  // Verificar los detalles de la orden en PayPal si las credenciales están configuradas
+  let gatewayResponse = null;
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+
+  if (clientId && clientSecret && clientId !== "sb") {
+    try {
+      const orderDetails = await paypalService.getOrderDetails(paypalOrderId);
+      gatewayResponse = orderDetails;
+
+      if (orderDetails.status === "APPROVED") {
+        const captureData = await paypalService.captureOrder(paypalOrderId);
+        gatewayResponse = captureData;
+      } else if (orderDetails.status !== "COMPLETED") {
+        throw new AppError(
+          `La orden de PayPal no está completada (Estado actual: ${orderDetails.status})`,
+          400
+        );
+      }
+    } catch (paypalErr) {
+      if (paypalErr instanceof AppError) throw paypalErr;
+      logger.error({ paypalErr, paypalOrderId }, "Error al verificar orden con PayPal");
+      throw new AppError("No se pudo verificar la orden con PayPal", 502);
+    }
+  } else {
+    logger.info(
+      { paypalOrderId },
+      "[PayPal Sandbox Demo] Saltando verificación remota de orden debido a credenciales no configuradas o modo 'sb'"
+    );
+    gatewayResponse = { id: paypalOrderId, status: "COMPLETED", demo: true };
+  }
+
+  // Registrar o actualizar el pago
+  let payment = await repo.getPaymentByOrderId(paypalOrderId);
+  if (!payment) {
+    payment = await repo.createPayment({
+      subscription_id: subscription.id,
+      supplier_id: supplierId,
+      amount: Number(subscription.amount),
+      currency: subscription.currency,
+      payment_method: "paypal",
+      paypal_order_id: paypalOrderId,
+    });
+  }
+
+  await repo.updatePaymentByOrderId(paypalOrderId, {
+    status: "completed",
+    webhook_verified: true,
+    paid_at: new Date().toISOString(),
+    gateway_response: gatewayResponse,
+  });
+
+  // Avanzar la solicitud a pending_review
+  const updatedRequest = await repo.updateVerificationRequest(requestId, {
+    status: "pending_review",
+    submitted_at: new Date().toISOString(),
+  });
+
+  // Activar la suscripción
+  const { query: dbQuery } = await import("../../config/db.js");
+  await dbQuery(
+    `UPDATE public.subscriptions SET status = 'active', updated_at = NOW() WHERE id = $1`,
+    [subscription.id]
+  );
+
+  logger.info(
+    { requestId, supplierId, paypalOrderId },
+    "Pago confirmado exitosamente y solicitud avanzada a pending_review"
+  );
+
+  return { request: updatedRequest, payment, subscription };
+};
+
 // ─── WEBHOOK ───────────────────────────────────────────────────────────────────
 
 export const handleWebhook = async (event, paypalService) => {

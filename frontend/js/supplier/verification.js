@@ -108,7 +108,12 @@ async function loadVerificationState() {
       renderNoRequestUI();
     }
   } catch (err) {
-    if (err.message.includes("404") || err.status === 404) {
+    if (
+      err.status === 404 ||
+      err.message?.includes("404") ||
+      err.message?.includes("No tienes ninguna solicitud") ||
+      err.data?.message?.includes("No tienes ninguna solicitud")
+    ) {
       renderNoRequestUI();
     } else {
       throw err;
@@ -412,17 +417,74 @@ async function selectPlan(planId) {
   }
 }
 
+let paypalSdkLoading = false;
+
+async function ensurePayPalSDK() {
+  if (window.paypal) return true;
+  if (paypalSdkLoading) {
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (window.paypal) {
+          clearInterval(interval);
+          resolve(true);
+        }
+      }, 100);
+      setTimeout(() => {
+        clearInterval(interval);
+        resolve(Boolean(window.paypal));
+      }, 10000);
+    });
+  }
+
+  paypalSdkLoading = true;
+  try {
+    let clientId = "sb";
+    try {
+      const configRes = await apiFetch("/verification/config", { requiresAuth: false });
+      if (configRes.success && configRes.data?.paypal_client_id) {
+        clientId = configRes.data.paypal_client_id;
+      }
+    } catch (e) {
+      console.warn("[PayPal] No se pudo obtener client_id del servidor, usando fallback:", e);
+    }
+
+    await new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD`;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = (e) => reject(new Error("No se pudo cargar el SDK de PayPal"));
+      document.head.appendChild(script);
+    });
+    return true;
+  } catch (err) {
+    console.error("[PayPal] Error al cargar SDK:", err);
+    return false;
+  } finally {
+    paypalSdkLoading = false;
+  }
+}
+
 /**
  * Inicializar Botones de PayPal SDK
  */
-function initPayPalSDK() {
+async function initPayPalSDK() {
   if (!paypalButtonContainer) return;
-  paypalButtonContainer.innerHTML = "";
+  paypalButtonContainer.innerHTML = `<p style="color:#64748b; text-align:center; font-size:0.9rem;">Cargando pasarela de PayPal...</p>`;
 
-  if (typeof window.paypal === "undefined") {
-    paypalButtonContainer.innerHTML = `<p style="color:#ef4444; text-align:center;">Error al cargar el SDK de PayPal. Por favor recarga la página.</p>`;
+  const loaded = await ensurePayPalSDK();
+  if (!loaded || typeof window.paypal === "undefined") {
+    paypalButtonContainer.innerHTML = `
+      <div style="text-align:center; padding: 16px; background:#fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b;">
+        <p style="margin: 0 0 8px 0; font-size: 0.9rem; font-weight:600;">No se pudo conectar con la pasarela de PayPal.</p>
+        <p style="margin: 0 0 12px 0; font-size: 0.8rem; color:#b91c1c;">Verifica tu conexión o la configuración del Client ID en el servidor.</p>
+        <button type="button" id="retry-paypal-btn" class="btn btn-outline" style="font-size:0.8rem; padding:6px 14px; cursor:pointer;">Reintentar</button>
+      </div>
+    `;
+    document.getElementById("retry-paypal-btn")?.addEventListener("click", () => initPayPalSDK());
     return;
   }
+  paypalButtonContainer.innerHTML = "";
 
   const selectedPlan = state.plans.find((p) => p.id === state.selectedPlanId);
   const amount = selectedPlan ? Number(selectedPlan.final_price).toFixed(2) : "3.00";

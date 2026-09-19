@@ -12,6 +12,7 @@ import productRoutes from "./modules/products/productRoutes.js";
 import commentRoutes from "./modules/comments/commentRoutes.js";
 import ratingRoutes from "./modules/ratings/ratingRoutes.js";
 import adminRoutes from "./modules/admin/adminRoutes.js";
+import verificationRoutes from "./modules/verification/verificationRoutes.js";
 import { setupSwagger } from "./config/swagger.js";
 import { env } from "./config/environment.js";
 
@@ -80,6 +81,8 @@ app.use("/api/v1/comments", commentRoutes);
 app.use("/api/v1/ratings", ratingRoutes);
 // Módulo de Administración (protegido — requiere rol Admin)
 app.use("/api/v1/admin", adminRoutes);
+// Módulo de Verificación y Suscripción (PayPal)
+app.use("/api/v1/verification", verificationRoutes);
 
 app.use(errorHandler);
 
