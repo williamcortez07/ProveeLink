@@ -1,10 +1,11 @@
 import { verifyToken } from "../utils/jwt.js";
 import { AppError } from "../utils/AppError.js";
 import { asyncWrapper } from "../utils/asyncWrapper.js";
+import { getUserForAuthById } from "../modules/users/userRepository.js";
 
 /**
  * Middleware de autenticación.
- * Verifica el Bearer token JWT y adjunta el payload a req.user.
+ * Verifica el Bearer token JWT y valida que el usuario siga existiendo y esté activo en la BD.
  */
 export const authenticate = asyncWrapper(async (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -18,16 +19,35 @@ export const authenticate = asyncWrapper(async (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
+  let decoded;
   try {
-    const decoded = verifyToken(token);
-    req.user = decoded; // { id, email, role_id, role_name, iat, exp }
-    next();
+    decoded = verifyToken(token);
   } catch (err) {
     if (err.name === "TokenExpiredError") {
       throw new AppError("El token ha expirado. Por favor inicia sesión nuevamente.", 401);
     }
     throw new AppError("Token inválido o malformado.", 401);
   }
+
+  // Verificación en base de datos para prevenir privilegios desactualizados o cuentas desactivadas
+  const user = await getUserForAuthById(decoded.id);
+  if (!user) {
+    throw new AppError("Usuario no encontrado o dado de baja.", 401);
+  }
+
+  if (user.status !== "active") {
+    throw new AppError("Tu cuenta no se encuentra activa. Contacta al administrador.", 403);
+  }
+
+  // Usar datos frescos de la BD para req.user (evita confiar únicamente en el payload del JWT)
+  req.user = {
+    id: user.id,
+    email: user.email,
+    role_id: user.role_id,
+    role_name: user.role_name,
+  };
+
+  next();
 });
 
 /**

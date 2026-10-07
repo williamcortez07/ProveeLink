@@ -56,17 +56,35 @@ export const findActiveOtp = async (email) => {
 };
 
 /**
- *
+ * Incrementa el contador de intentos fallidos de un OTP.
  * @param {string} otpId UUID del registro verify_email
+ * @returns {Promise<number>} Cantidad actualizada de intentos fallidos
  */
 export const incrementFailedAttempts = async (otpId) => {
   try {
+    const result = await query(
+      `UPDATE public.verify_email SET failed_attempts = failed_attempts + 1 WHERE id = $1 RETURNING failed_attempts;`,
+      [otpId],
+    );
+    return result.rows[0]?.failed_attempts ?? 1;
+  } catch (err) {
+    logger.warn({ err, otpId }, "No se pudo incrementar failed_attempts");
+    return 1;
+  }
+};
+
+/**
+ * Invalida un OTP marcándolo como usado tras superar el máximo de intentos.
+ * @param {string} otpId UUID del registro verify_email
+ */
+export const invalidateOtp = async (otpId) => {
+  try {
     await query(
-      `UPDATE public.verify_email SET failed_attempts = failed_attempts + 1 WHERE id = $1;`,
+      `UPDATE public.verify_email SET used = TRUE WHERE id = $1;`,
       [otpId],
     );
   } catch (err) {
-    logger.warn({ err, otpId }, "No se pudo incrementar failed_attempts");
+    logger.error({ err, otpId }, "Error al invalidar OTP bloqueado");
   }
 };
 

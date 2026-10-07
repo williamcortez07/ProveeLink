@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as roleController from '../controllers/roleController.js';
 import { validateRequest } from '../../../middlewares/validateRequest.js';
-import { authenticate } from '../../../middlewares/auth.middlewares.js';
+import { authenticate, authorize } from '../../../middlewares/auth.middlewares.js';
 import {
   createRoleSchema,
   updateRoleSchema,
@@ -194,7 +194,7 @@ router.use(authenticate);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', validateRequest(createRoleSchema), roleController.createRole);
+router.post('/', authorize('Admin'), validateRequest(createRoleSchema), roleController.createRole);
 router.get('/', validateRequest(getRolesQuerySchema), roleController.getRoles);
 
 /**
@@ -306,6 +306,6 @@ router.get('/', validateRequest(getRolesQuerySchema), roleController.getRoles);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/:id', validateRequest(roleIdParamSchema), roleController.getRoleById);
-router.put('/:id', validateRequest(updateRoleSchema), roleController.updateRole);
+router.put('/:id', authorize('Admin'), validateRequest(updateRoleSchema), roleController.updateRole);
 
 export default router;

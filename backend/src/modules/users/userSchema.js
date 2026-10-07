@@ -108,6 +108,7 @@ export const updateUserSchema = z.object({
         .trim()
         .regex(phoneRegex, "El teléfono no tiene un formato válido")
         .optional(),
+      current_password: z.string().trim().optional(),
       password: z
         .string()
         .trim()

@@ -43,6 +43,7 @@ export const updateUser = asyncWrapper(async (req, res) => {
   const updatedUser = await userService.updateUserService(
     req.params.id,
     req.body,
+    req.user,
   );
   res.status(200).json({
     success: true,

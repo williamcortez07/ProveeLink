@@ -226,6 +226,7 @@ router.use(authenticate);
  */
 router.post(
   "/",
+  authorize("Admin"),
   validateRequest(createCategorySchema),
   categoryController.createCategory,
 );
@@ -350,6 +351,7 @@ router.get(
 );
 router.put(
   "/:id",
+  authorize("Admin"),
   validateRequest(updateCategorySchema),
   categoryController.updateCategory,
 );

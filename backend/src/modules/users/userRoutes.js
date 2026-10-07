@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as userController from "../users/userController.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
-import { authenticate } from "../../middlewares/auth.middlewares.js";
+import { authenticate, authorize } from "../../middlewares/auth.middlewares.js";
 import {
   createUserSchema,
   getUsersSchema,
@@ -314,8 +314,15 @@ const router = Router();
  *       500:
  *         description: Error interno del servidor.
  */
-// POST / es público (registro de usuarios)
-router.post("/", validateRequest(createUserSchema), userController.createUser);
+// POST / requiere privilegios de Administrador para aprovisionar usuarios directamente.
+// El registro público de clientes debe realizarse a través de POST /api/v1/auth/register con verificación OTP.
+router.post(
+  "/",
+  authenticate,
+  authorize("Admin"),
+  validateRequest(createUserSchema),
+  userController.createUser,
+);
 // El resto de endpoints requieren autenticación
 router.get("/", authenticate, validateRequest(getUsersSchema), userController.getUsers);
 
@@ -558,6 +565,7 @@ router.patch(
 router.patch(
   "/:id/status",
   authenticate,
+  authorize("Admin"),
   validateRequest(changeStatusSchema),
   userController.changeUserStatus,
 );

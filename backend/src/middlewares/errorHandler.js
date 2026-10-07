@@ -11,17 +11,16 @@ export const errorHandler = (err, req, res, next) => {
   }, 'Error en la petición');
 
   const isProduction = process.env.NODE_ENV === 'production';
-
-  // Si el error tiene un status definido, es un AppError controlado:
-  // se puede mostrar el mensaje al cliente de forma segura.
-  // Si NO tiene status (crash inesperado de Node/DB), se oculta el detalle.
   const isControlledError = typeof err.status === 'number';
+
+  // Solo exponer el mensaje si es un AppError controlado con status HTTP explícito.
+  // Cualquier excepción no controlada (errores SQL, crashes, paths) devuelve mensaje genérico.
+  const safeMessage = isControlledError
+    ? err.message
+    : 'Error interno del servidor';
 
   res.status(err.status || 500).json({
     success: false,
-    message: (isProduction && !isControlledError)
-      ? 'Error interno del servidor'
-      : err.message,
-    ...(isProduction ? {} : { stack: err.stack }),
+    message: safeMessage,
   });
 };

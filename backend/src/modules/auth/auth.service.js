@@ -18,6 +18,7 @@ import {
   upsertAdminLoginOtp,
   findActiveAdminOtp,
   markAdminOtpUsed,
+  invalidateOtp,
 } from "./auth.repository.js";
 import {
   getUserForAuth,
@@ -178,7 +179,7 @@ export const verifyEmailService = async ({ email, otp }) => {
 
   if (!otpRecord) {
     throw new AppError(
-      "No se encontró un código OTP activo para este correo. Puede haber expirado.",
+      "No se encontró un código OTP activo para este correo. Puede haber expirado o haber sido bloqueado por múltiples intentos fallidos.",
       400,
     );
   }
@@ -187,8 +188,16 @@ export const verifyEmailService = async ({ email, otp }) => {
   const isValid = await bcrypt.compare(otp, otpRecord.code_otp);
 
   if (!isValid) {
-    await incrementFailedAttempts(otpRecord.id);
-    throw new AppError("El código OTP es incorrecto.", 400);
+    const newAttempts = await incrementFailedAttempts(otpRecord.id);
+    const remaining = 5 - newAttempts;
+    if (remaining <= 0) {
+      await invalidateOtp(otpRecord.id);
+      throw new AppError(
+        "Has superado el límite de 5 intentos fallidos. El código OTP ha sido bloqueado. Por favor solicita un nuevo código.",
+        429,
+      );
+    }
+    throw new AppError(`El código OTP es incorrecto. Intentos restantes: ${remaining}.`, 400);
   }
 
   // 3. Marcar OTP como usado y activar usuario (transacción)
@@ -312,7 +321,7 @@ export const adminVerifyOtpService = async ({ email, otp }) => {
 
   if (!otpRecord) {
     throw new AppError(
-      "No se encontró un código OTP activo para este correo. Puede haber expirado.",
+      "No se encontró un código OTP activo para este correo. Puede haber expirado o haber sido bloqueado por múltiples intentos fallidos.",
       400,
     );
   }
@@ -321,8 +330,16 @@ export const adminVerifyOtpService = async ({ email, otp }) => {
   const isValid = await bcrypt.compare(otp, otpRecord.code_otp);
 
   if (!isValid) {
-    await incrementFailedAttempts(otpRecord.id);
-    throw new AppError("El código OTP es incorrecto.", 400);
+    const newAttempts = await incrementFailedAttempts(otpRecord.id);
+    const remaining = 5 - newAttempts;
+    if (remaining <= 0) {
+      await invalidateOtp(otpRecord.id);
+      throw new AppError(
+        "Has superado el límite de 5 intentos fallidos. El código OTP administrativo ha sido bloqueado. Por favor solicita un nuevo código.",
+        429,
+      );
+    }
+    throw new AppError(`El código OTP es incorrecto. Intentos restantes: ${remaining}.`, 400);
   }
 
   // 3. Marcar OTP como usado

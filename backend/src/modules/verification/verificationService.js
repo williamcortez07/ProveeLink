@@ -288,9 +288,25 @@ export const confirmPayment = async (requestId, supplierId, paypalOrderId, paypa
 
 // ─── WEBHOOK ───────────────────────────────────────────────────────────────────
 
+// Cache de idempotencia de eventos PayPal para prevenir procesamiento duplicado
+const processedWebhookEventIds = new Set();
+
 export const handleWebhook = async (event, paypalService) => {
+  const eventId = event?.id;
+  if (eventId) {
+    if (processedWebhookEventIds.has(eventId)) {
+      logger.info({ eventId }, "Webhook ignorado por idempotencia: evento ya procesado previamente");
+      return;
+    }
+    processedWebhookEventIds.add(eventId);
+    if (processedWebhookEventIds.size > 10000) {
+      const oldest = processedWebhookEventIds.values().next().value;
+      processedWebhookEventIds.delete(oldest);
+    }
+  }
+
   const eventType = event?.event_type;
-  logger.info({ eventType }, "Webhook PayPal recibido");
+  logger.info({ eventType, eventId }, "Webhook PayPal recibido");
 
   if (eventType !== "PAYMENT.CAPTURE.COMPLETED") {
     logger.info({ eventType }, "Webhook ignorado: tipo de evento no procesado");

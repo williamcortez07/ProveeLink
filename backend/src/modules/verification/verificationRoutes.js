@@ -16,8 +16,8 @@ import {
 const router = Router();
 
 // ─── PÚBLICAS ────────────────────────────────────────────────────────────────
-// Configuración pública (Client ID de PayPal, modo sandbox/live)
-router.get("/config", verificationController.getPublicConfig);
+// Configuración de PayPal para checkout (solo usuarios autenticados)
+router.get("/config", authenticate, verificationController.getPublicConfig);
 
 // Planes de suscripción disponibles
 router.get("/plans", verificationController.getPlans);

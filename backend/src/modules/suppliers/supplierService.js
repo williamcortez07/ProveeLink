@@ -18,11 +18,17 @@ import { findRoleByName } from "../auth/auth.repository.js";
 import { updateUserRole } from "../users/userRepository.js";
 import { signAccessToken, signRefreshToken } from "../../utils/jwt.js";
 
-export const createSupplierService = async (supplierData) => {
+export const createSupplierService = async (supplierData, currentUser) => {
   const { company_id, ...rest } = supplierData;
   const company = await companyrepository.getCompanyById(company_id);
   if (!company) {
     throw new AppError("La empresa especificada no existe en nuestro sistema", 404);
+  }
+
+  const isOwner = currentUser && company.user_id === currentUser.id;
+  const isAdmin = currentUser && (currentUser.role_name || "").toLowerCase() === "admin";
+  if (!isOwner && !isAdmin) {
+    throw new AppError("No puedes registrar un perfil de proveedor para una empresa que no te pertenece", 403);
   }
 
   const createdSupplier = await supplierRepository.createSupplier({
@@ -122,21 +128,31 @@ export const getSupplierByIdService = async (id) => {
   return supplier;
 };
 
-export const updateSupplierService = async (id, updateData) => {
+export const updateSupplierService = async (id, updateData, currentUser) => {
   const supplier = await supplierRepository.getSupplierById(id);
   if (!supplier) {
     throw new AppError("Proveedor no encontrado", 404);
   }
 
+  const company = await companyrepository.getCompanyById(supplier.company_id);
+  const isOwner = currentUser && company && company.user_id === currentUser.id;
+  const isAdmin = currentUser && (currentUser.role_name || "").toLowerCase() === "admin";
+  if (!isOwner && !isAdmin) {
+    throw new AppError("No tienes permisos para modificar este proveedor", 403);
+  }
+
   if (updateData.company_id && updateData.company_id !== supplier.company_id) {
-    const company = await companyrepository.getCompanyById(
+    const targetCompany = await companyrepository.getCompanyById(
       updateData.company_id,
     );
-    if (!company) {
+    if (!targetCompany) {
       throw new AppError(
         "La empresa especificada no existe en nuestro sistema",
         400,
       );
+    }
+    if (targetCompany.user_id !== currentUser.id && !isAdmin) {
+      throw new AppError("No puedes transferir un proveedor a una empresa que no te pertenece", 403);
     }
   }
 
@@ -144,11 +160,19 @@ export const updateSupplierService = async (id, updateData) => {
   return updateSupplier;
 };
 
-export const changeSupplierStatus = async (id, status) => {
+export const changeSupplierStatus = async (id, status, currentUser) => {
   const supplier = await supplierRepository.getSupplierById(id);
   if (!supplier) {
     throw new AppError("Proveedor no encontrado", 404);
   }
+
+  const company = await companyrepository.getCompanyById(supplier.company_id);
+  const isOwner = currentUser && company && company.user_id === currentUser.id;
+  const isAdmin = currentUser && (currentUser.role_name || "").toLowerCase() === "admin";
+  if (!isOwner && !isAdmin) {
+    throw new AppError("No tienes permisos para cambiar el estado de este proveedor", 403);
+  }
+
   const currentStatus = supplier.status;
   const allowedTransitions = {
     active: ["inactive", "suspended"],

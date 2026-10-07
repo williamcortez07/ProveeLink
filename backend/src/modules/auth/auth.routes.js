@@ -11,7 +11,12 @@ import {
   adminVerifySchema,
   adminResendSchema,
 } from "./auth.schema.js";
-
+import {
+  loginLimiter,
+  registerLimiter,
+  otpLimiter,
+  resendOtpLimiter,
+} from "../../middlewares/rateLimiter.js";
 
 const router = Router();
 
@@ -154,7 +159,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/login", validateRequest(loginSchema), authController.login);
+router.post("/login", loginLimiter, validateRequest(loginSchema), authController.login);
 
 /**
  * @openapi
@@ -360,6 +365,7 @@ router.get("/me", authenticate, authController.getMe);
  */
 router.post(
   "/register",
+  registerLimiter,
   validateRequest(registerSchema),
   authController.register,
 );
@@ -435,6 +441,7 @@ router.post(
  */
 router.post(
   "/verify",
+  otpLimiter,
   validateRequest(verifyEmailSchema),
   authController.verifyEmail,
 );
@@ -499,6 +506,7 @@ router.post(
  */
 router.post(
   "/resend-otp",
+  resendOtpLimiter,
   validateRequest(resendOtpSchema),
   authController.resendOtp,
 );
@@ -583,6 +591,7 @@ router.post("/upgrade-role", authenticate, authController.upgradeRole);
  */
 router.post(
   "/admin-verify",
+  otpLimiter,
   validateRequest(adminVerifySchema),
   authController.adminVerifyOtp,
 );
@@ -593,6 +602,7 @@ router.post(
  */
 router.post(
   "/admin-resend-otp",
+  resendOtpLimiter,
   validateRequest(adminResendSchema),
   authController.adminResendOtp,
 );

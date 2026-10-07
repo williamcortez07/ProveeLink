@@ -89,11 +89,9 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 export const setupSwagger = (app) => {
-  // Solo exponer la documentación en ambientes que no sean producción estricta,
-  // o según la configuración, para mitigar exposición de la arquitectura de la API.
+  // Deshabilitar completamente la documentación en producción para evitar exposición de endpoints y esquemas
   if (env.NODE_ENV === "production") {
-    // Si se requiere exponer en producción, se puede proteger con autenticación básica.
-    // Por ahora, en desarrollo/test está libre.
+    return;
   }
 
   // Opciones de personalización de Swagger UI para mejorar seguridad y estética

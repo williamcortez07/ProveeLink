@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Página principal -->
+  <url>
+    <loc>https://provee-link.vercel.app/</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Inicio (Home) -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/home.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Categorías -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/category.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Información de categoría -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/categoryInfo.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Favoritos -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/favorites.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Perfil de usuario -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/profile.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- ===================== PROVEEDOR ===================== -->
+
+  <!-- Perfil público del proveedor -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/supplier/supplier.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Home del proveedor -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/supplier/homeSupplier.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Registro de proveedor -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/supplier/createSupplier.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Verificación del proveedor -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/supplier/verification.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- ===================== EMPRESA ===================== -->
+
+  <!-- Perfil público de empresa -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/company/company.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Home de empresa -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/company/homeCompany.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Registro de empresa -->
+  <url>
+    <loc>https://provee-link.vercel.app/pages/company/createCompany.html</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

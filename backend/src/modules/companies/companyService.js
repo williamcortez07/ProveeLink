@@ -21,8 +21,15 @@ const ALLOWED_SORT_FIELDS = new Set([
   "updated_at",
 ]);
 
-export const createCompanyService = async (companyData) => {
+export const createCompanyService = async (companyData, currentUser) => {
   const { email, user_id, tax_id, ...rest } = companyData;
+
+  const isSelf = currentUser && currentUser.id === user_id;
+  const isAdmin = currentUser && (currentUser.role_name || "").toLowerCase() === "admin";
+  if (!isSelf && !isAdmin) {
+    throw new AppError("No puedes registrar una empresa a nombre de otro usuario", 403);
+  }
+
   const user = await userRepository.getUserById(user_id);
   if (!user) {
     throw new AppError("El usuario especificado no existe", 400);
@@ -127,10 +134,16 @@ export const getCompanyByIdService = async (id) => {
   return company;
 };
 
-export const updateCompanyService = async (id, updateData) => {
+export const updateCompanyService = async (id, updateData, currentUser) => {
   const company = await companyRepository.getCompanyById(id);
   if (!company) {
     throw new AppError("Empresa no encontrada", 404);
+  }
+
+  const isOwner = currentUser && currentUser.id === company.user_id;
+  const isAdmin = currentUser && (currentUser.role_name || "").toLowerCase() === "admin";
+  if (!isOwner && !isAdmin) {
+    throw new AppError("No tienes permisos para modificar esta empresa", 403);
   }
 
   const ALLOWED_UPDATE_FIELDS = [

@@ -4,9 +4,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProveeLink</title>
 
-    <!-- PWA Manifest & Meta Tags -->
+    <!-- ===== SEO Principal ===== -->
+    <title>ProveeLink | Directorio de Proveedores Nacionales para MIPYMES</title>
+    <meta name="description" content="ProveeLink conecta emprendedores y MIPYMES con proveedores nacionales verificados de productos, materias primas, maquinaria y servicios. Busca, compara y contacta proveedores confiables en un solo lugar." />
+    <meta name="keywords" content="proveedores nacionales, directorio de proveedores, MIPYMES, proveedores verificados, materias primas, maquinaria industrial, servicios profesionales, cotizaciones, proveelink" />
+    <meta name="author" content="ProveeLink" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://provee-link.vercel.app/" />
+
+    <!-- ===== Open Graph (Facebook, LinkedIn, WhatsApp) ===== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://provee-link.vercel.app/" />
+    <meta property="og:title" content="ProveeLink | Directorio de Proveedores Nacionales" />
+    <meta property="og:description" content="Conecta tu empresa con proveedores nacionales verificados. Busca, compara y solicita cotizaciones en segundos." />
+    <meta property="og:image" content="https://provee-link.vercel.app/assets/icons/baner.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ProveeLink — Plataforma de proveedores nacionales" />
+    <meta property="og:site_name" content="ProveeLink" />
+    <meta property="og:locale" content="es_ES" />
+
+    <!-- ===== Twitter Card ===== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://provee-link.vercel.app/" />
+    <meta name="twitter:title" content="ProveeLink | Directorio de Proveedores Nacionales" />
+    <meta name="twitter:description" content="Conecta tu empresa con proveedores nacionales verificados. Busca, compara y solicita cotizaciones en segundos." />
+    <meta name="twitter:image" content="https://provee-link.vercel.app/assets/icons/baner.png" />
+    <meta name="twitter:image:alt" content="ProveeLink — Plataforma de proveedores nacionales" />
+
+    <!-- ===== PWA Manifest & Meta Tags ===== -->
     <link rel="manifest" href="./manifest.json" />
     <meta name="theme-color" content="#0f2d59" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -16,10 +43,52 @@
     <link rel="apple-touch-icon" href="./assets/icons/baner.png" />
     <link rel="icon" type="image/x-icon" href="./assets/icons/proteger.ico" />
 
+    <!-- ===== Sitemap ===== -->
+    <link rel="sitemap" type="application/xml" href="./sitemap.xml" />
+
+    <!-- ===== JSON-LD: Datos Estructurados (Schema.org) ===== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://provee-link.vercel.app/#website",
+          "url": "https://provee-link.vercel.app/",
+          "name": "ProveeLink",
+          "description": "Plataforma Web Progresiva para la gestión, conexión y consulta de proveedores nacionales.",
+          "inLanguage": "es",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://provee-link.vercel.app/pages/category.html?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://provee-link.vercel.app/#organization",
+          "name": "ProveeLink",
+          "url": "https://provee-link.vercel.app/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://provee-link.vercel.app/assets/icons/baner.png",
+            "width": 512,
+            "height": 512
+          },
+          "description": "Conectamos emprendedores, micro, pequeñas y medianas empresas con proveedores nacionales verificados de productos, materias primas, maquinaria industrial y servicios profesionales.",
+          "sameAs": []
+        }
+      ]
+    }
+    </script>
+
+    <!-- ===== Estilos globales y de layout ===== -->
     <link rel="stylesheet" href="./css/base/globals.css" />
     <link rel="stylesheet" href="./css/components/sidebar.css" />
     <link rel="stylesheet" href="./css/components/login.css" />
-    <!-- Estilos globales y de layout -->
   </head>
   <body>
     <!-- Contenedor del Topbar Global -->

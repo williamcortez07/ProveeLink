@@ -1,0 +1,14 @@
+# robots.txt — ProveeLink
+# https://provee-link.vercel.app
+
+User-agent: *
+Allow: /
+
+# Excluir rutas de administración (no deben indexarse)
+Disallow: /pages/admin/
+Disallow: /js/
+Disallow: /css/
+Disallow: /sw.js
+
+# Sitemap
+Sitemap: https://provee-link.vercel.app/sitemap.xml

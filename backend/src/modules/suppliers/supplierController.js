@@ -2,7 +2,7 @@ import * as supplierService from "../suppliers/supplierService.js";
 import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const createSupplier = asyncWrapper(async (req, res) => {
-  const result = await supplierService.createSupplierService(req.body);
+  const result = await supplierService.createSupplierService(req.body, req.user);
   const data = result?.supplier ?? result;
   const auth = result?.tokens ?? null;
   res.status(201).json({
@@ -46,6 +46,7 @@ export const updateSupplier = asyncWrapper(async (req, res) => {
   const updatedSupplier = await supplierService.updateSupplierService(
     req.params.id,
     req.body,
+    req.user,
   );
   res.status(200).json({
     success: true,
@@ -58,6 +59,7 @@ export const changeSupplierStatus = asyncWrapper(async (req, res) => {
   const updatedSupplier = await supplierService.changeSupplierStatus(
     req.params.id,
     req.body.status,
+    req.user,
   );
   res.status(200).json({
     success: true,

@@ -2,7 +2,7 @@ import * as companyService from "../companies/companyService.js";
 import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const createCompany = asyncWrapper(async (req, res) => {
-  const result = await companyService.createCompanyService(req.body);
+  const result = await companyService.createCompanyService(req.body, req.user);
   const { company, tokens } = result;
 
   const responseBody = {
@@ -56,6 +56,7 @@ export const updateCompany = asyncWrapper(async (req, res) => {
   const updatedCompany = await companyService.updateCompanyService(
     req.params.id,
     req.body,
+    req.user,
   );
   res.status(200).json({
     success: true,

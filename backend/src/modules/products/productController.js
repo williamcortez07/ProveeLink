@@ -2,7 +2,7 @@ import * as productService from "../products/productService.js";
 import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const createProduct = asyncWrapper(async (req, res) => {
-  const newProduct = await productService.createProductService(req.body);
+  const newProduct = await productService.createProductService(req.body, req.user);
   res.status(201).json({
     success: true,
     message: "Producto registrado correctamente",
@@ -63,6 +63,7 @@ export const updateProduct = asyncWrapper(async (req, res) => {
   const updatedProduct = await productService.updateProductService(
     req.params.id,
     req.body,
+    req.user,
   );
   res.status(200).json({
     success: true,
@@ -75,6 +76,7 @@ export const changeProductStatus = asyncWrapper(async (req, res) => {
   const updatedProduct = await productService.changeProductStatusService(
     req.params.id,
     req.body.status,
+    req.user,
   );
   res.status(200).json({
     success: true,
@@ -84,7 +86,7 @@ export const changeProductStatus = asyncWrapper(async (req, res) => {
 });
 
 export const deleteProduct = asyncWrapper(async (req, res) => {
-  await productService.deleteProductService(req.params.id);
+  await productService.deleteProductService(req.params.id, req.user);
   res.status(200).json({
     success: true,
     message: "Producto eliminado correctamente",
@@ -106,6 +108,7 @@ export const addProductImage = asyncWrapper(async (req, res) => {
   const newImage = await productService.addProductImageService(
     req.params.id,
     req.body,
+    req.user,
   );
   res.status(201).json({
     success: true,
@@ -118,6 +121,7 @@ export const deleteProductImage = asyncWrapper(async (req, res) => {
   await productService.deleteProductImageService(
     req.params.id,
     req.params.imageId,
+    req.user,
   );
   res.status(200).json({
     success: true,

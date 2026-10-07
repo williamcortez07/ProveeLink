@@ -245,17 +245,31 @@ export const getUserForAuthById = async (id) => {
 
 export const updateUser = async (id, updateData) => {
   try {
+    const ALLOWED_COLUMNS = new Set([
+      "first_name",
+      "last_name",
+      "email",
+      "phone",
+      "password_hash",
+      "profile_picture_url",
+      "role_id",
+      "status",
+    ]);
+
     const fields = [];
     const values = [];
     let index = 1;
 
-    Object.entries(updateData).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(updateData)) {
       if (value !== undefined) {
-        fields.push(`${key} = $${index}`);
+        if (!ALLOWED_COLUMNS.has(key)) {
+          throw new AppError(`Columna no permitida para actualización: ${key}`, 400);
+        }
+        fields.push(`"${key}" = $${index}`);
         values.push(value);
         index += 1;
       }
-    });
+    }
 
     if (fields.length === 0) {
       return getUserById(id);
@@ -271,6 +285,7 @@ export const updateUser = async (id, updateData) => {
     await query(sql, values);
     return getUserById(id);
   } catch (err) {
+    if (err instanceof AppError) throw err;
     logger.error({ err, id, updateData }, "Error en updateUser");
     throw new Error("Error al actualizar el usuario");
   }

@@ -98,7 +98,21 @@ export const getUserByIdService = async (id) => {
   return user;
 };
 
-export const updateUserService = async (id, updateData) => {
+export const updateUserService = async (id, updateData, currentUser) => {
+  // 1. Verificación de autorización a nivel de recurso (IDOR) antes de consultar la BD
+  // Evita enumeración de IDs y previene cualquier modificación no autorizada
+  const isSelf = currentUser && currentUser.id === id;
+  const isAdmin = currentUser && (currentUser.role_name || "").toLowerCase() === "admin";
+
+  if (!isSelf && !isAdmin) {
+    throw new AppError("No tienes permisos para modificar la información de este usuario.", 403);
+  }
+
+  // 2. Protección de campos sensibles: usuarios comunes no pueden alterar roles
+  if (!isAdmin && updateData.role_id !== undefined) {
+    throw new AppError("No tienes permisos para modificar el rol de usuario.", 403);
+  }
+
   const user = await userRepository.getUserById(id);
   if (!user) {
     throw new AppError("Usuario no encontrado", 404);
@@ -118,14 +132,52 @@ export const updateUserService = async (id, updateData) => {
     }
   }
 
-  const fieldsToUpdate = { ...updateData };
-  if (fieldsToUpdate.password) {
+  const fieldsToUpdate = {};
+
+  // Whitelist estricta de campos actualizables
+  const allowedFields = new Set([
+    "first_name",
+    "last_name",
+    "email",
+    "phone",
+    "profile_picture_url",
+    ...(isAdmin ? ["role_id", "status"] : []),
+  ]);
+
+  for (const [key, value] of Object.entries(updateData)) {
+    if (allowedFields.has(key) && value !== undefined) {
+      fieldsToUpdate[key] = value;
+    }
+  }
+
+  // 3. Manejo seguro de cambio de contraseña
+  if (updateData.password) {
+    if (!isAdmin) {
+      if (!updateData.current_password) {
+        throw new AppError("Debes proporcionar tu contraseña actual para cambiarla.", 400);
+      }
+      const userAuth = await userRepository.getUserForAuthById(id);
+      if (!userAuth || !userAuth.password_hash) {
+        throw new AppError("Error al verificar credenciales actuales.", 500);
+      }
+      const passwordMatches = await bcrypt.compare(
+        updateData.current_password,
+        userAuth.password_hash,
+      );
+      if (!passwordMatches) {
+        throw new AppError("La contraseña actual es incorrecta.", 400);
+      }
+    }
+
     fieldsToUpdate.password_hash = await bcrypt.hash(
-      fieldsToUpdate.password,
+      updateData.password,
       SALT_ROUNDS,
     );
   }
-  delete fieldsToUpdate.password;
+
+  if (Object.keys(fieldsToUpdate).length === 0) {
+    return user;
+  }
 
   const updatedUser = await userRepository.updateUser(id, fieldsToUpdate);
   return updatedUser;

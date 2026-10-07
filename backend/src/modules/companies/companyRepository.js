@@ -227,16 +227,32 @@ export const getCompanyByTaxId = async (taxId) => {
 
 export const updateCompany = async (id, updateData) => {
   try {
+    const ALLOWED_COLUMNS = new Set([
+      "name",
+      "description",
+      "tax_id",
+      "phone",
+      "email",
+      "address",
+      "state_province",
+      "city",
+      "logo_url",
+      "website_url",
+    ]);
+
     const fields = [];
     const values = [];
     let index = 1;
-    Object.entries(updateData).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(updateData)) {
       if (value !== undefined) {
-        fields.push(`${key} = $${index}`);
+        if (!ALLOWED_COLUMNS.has(key)) {
+          throw new AppError(`Columna no permitida para actualización: ${key}`, 400);
+        }
+        fields.push(`"${key}" = $${index}`);
         values.push(value);
         index += 1;
       }
-    });
+    }
     if (fields.length === 0) {
       return getCompanyById(id);
     }
@@ -250,6 +266,7 @@ export const updateCompany = async (id, updateData) => {
     await query(sql, values);
     return getCompanyById(id);
   } catch (err) {
+    if (err instanceof AppError) throw err;
     logger.error({ err, id, updateData }, "Error en updateCompany");
     throw new Error("Error al actualizar la empresa");
   }

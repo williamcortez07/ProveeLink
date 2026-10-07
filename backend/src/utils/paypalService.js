@@ -207,7 +207,7 @@ export const verifyWebhookSignature = async ({ headers, body }) => {
     logger.warn(
       "[PayPalService] PAYPAL_WEBHOOK_ID no configurado; no se puede verificar firma de webhook."
     );
-    return false;
+    throw new AppError("PAYPAL_WEBHOOK_ID no configurado en el servidor", 503);
   }
 
   const token = await getAccessToken();

@@ -8,6 +8,7 @@ import { env } from "../config/environment.js";
  */
 export const signAccessToken = (payload) => {
   return jwt.sign(payload, env.JWT_SECRET, {
+    algorithm: "HS256",
     expiresIn: env.JWT_EXPIRES_IN,
     issuer: "ProveeLink",
     audience: "ProveeLink-Client",
@@ -21,6 +22,7 @@ export const signAccessToken = (payload) => {
  */
 export const signRefreshToken = (payload) => {
   return jwt.sign(payload, env.JWT_SECRET, {
+    algorithm: "HS256",
     expiresIn: "7d",
     issuer: "ProveeLink",
     audience: "ProveeLink-Client",
@@ -35,6 +37,7 @@ export const signRefreshToken = (payload) => {
  */
 export const verifyToken = (token) => {
   return jwt.verify(token, env.JWT_SECRET, {
+    algorithms: ["HS256"],
     issuer: "ProveeLink",
     audience: "ProveeLink-Client",
   });

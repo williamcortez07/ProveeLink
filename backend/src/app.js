@@ -18,29 +18,44 @@ import { env } from "./config/environment.js";
 
 const app = express();
 
+// Configuración para proxy inverso (Render, Vercel, Nginx) para lectura fidedigna de IPs
+app.set("trust proxy", 1);
+
 setupSwagger(app);
 
-// ── CORS ─────────────────────────────────────────────────────────
-// Lee CORS_ORIGIN del .env. Soporta '*' o lista de dominios separados por coma.
-// Normaliza removiendo barras diagonales finales ('/') para evitar fallos con los navegadores.
-const rawOrigins = env.CORS_ORIGIN.trim();
-const allowedOrigins =
-  rawOrigins === "*"
-    ? "*"
-    : rawOrigins
-        .split(",")
-        .map((o) => o.trim().replace(/\/+$/, ""))
-        .filter(Boolean);
+// ── CORS SEGURO ─────────────────────────────────────────────────────────
+// Parsear lista explícita de orígenes permitidos.
+// En desarrollo, incluir localhost por defecto si CORS_ORIGIN es '*' o vacío.
+const defaultDevOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5173",
+];
+
+const rawOrigins = (env.CORS_ORIGIN || "").trim();
+let allowedOrigins = [];
+
+if (rawOrigins && rawOrigins !== "*") {
+  allowedOrigins = rawOrigins
+    .split(",")
+    .map((o) => o.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+} else if (env.NODE_ENV !== "production") {
+  allowedOrigins = defaultDevOrigins;
+}
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins === "*") {
+    // Permitir solicitudes sin origen (como clientes móviles, CLI, curl o same-origin)
+    if (!origin) {
       return callback(null, true);
     }
     const normalizedOrigin = origin.replace(/\/+$/, "");
     if (allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
     }
+    // No reflejar orígenes no autorizados
     return callback(new Error(`Origen no permitido por CORS: ${origin}`));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

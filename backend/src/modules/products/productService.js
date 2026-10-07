@@ -1,6 +1,7 @@
 import * as productRepository from "../products/productRepository.js";
 import * as supplierRepository from "../suppliers/supplierRepository.js";
 import * as categoryRepository from "../categories/categoryRepository.js";
+import * as companyRepository from "../companies/companyRepository.js";
 import { AppError } from "../../utils/AppError.js";
 
 const DEFAULT_STATUS = "active";
@@ -18,8 +19,22 @@ const ALLOWED_SORT_FIELDS = new Set([
   "updated_at",
 ]);
 
-export const createProductService = async (productData) => {
+// Helper para validar propiedad del proveedor
+const ensureSupplierOwnership = async (supplierId, currentUser) => {
+  if (!currentUser) throw new AppError("No autenticado", 401);
+  if ((currentUser.role_name || "").toLowerCase() === "admin") return;
+  const supplier = await supplierRepository.getSupplierById(supplierId);
+  if (!supplier) throw new AppError("El proveedor especificado no existe en nuestro sistema", 400);
+  const company = await companyRepository.getCompanyById(supplier.company_id);
+  if (!company || company.user_id !== currentUser.id) {
+    throw new AppError("No tienes permisos para gestionar productos de este proveedor", 403);
+  }
+};
+
+export const createProductService = async (productData, currentUser) => {
   const { name, supplier_id, category_id, image_url, ...rest } = productData;
+
+  await ensureSupplierOwnership(supplier_id, currentUser);
 
   const supplier = await supplierRepository.getSupplierById(supplier_id);
   if (!supplier) {
@@ -163,16 +178,27 @@ export const getProductByIdService = async (id) => {
   return product;
 };
 
-export const updateProductService = async (id, updateData) => {
+const ensureProductOwnership = async (productId, currentUser) => {
+  if (!currentUser) throw new AppError("No autenticado", 401);
+  if ((currentUser.role_name || "").toLowerCase() === "admin") return;
+  const product = await productRepository.getProductById(productId);
+  if (!product) throw new AppError("Producto no encontrado", 404);
+  await ensureSupplierOwnership(product.supplier_id, currentUser);
+};
+
+export const updateProductService = async (id, updateData, currentUser) => {
   const product = await productRepository.getProductById(id);
   if (!product) {
     throw new AppError("Producto no encontrado", 404);
   }
 
+  await ensureProductOwnership(id, currentUser);
+
   if (
     updateData.supplier_id &&
     updateData.supplier_id !== product.supplier_id
   ) {
+    await ensureSupplierOwnership(updateData.supplier_id, currentUser);
     const supplier = await supplierRepository.getSupplierById(
       updateData.supplier_id,
     );
@@ -203,11 +229,13 @@ export const updateProductService = async (id, updateData) => {
   return updatedProduct;
 };
 
-export const changeProductStatusService = async (id, status) => {
+export const changeProductStatusService = async (id, status, currentUser) => {
   const product = await productRepository.getProductById(id);
   if (!product) {
     throw new AppError("Producto no encontrado", 404);
   }
+
+  await ensureProductOwnership(id, currentUser);
 
   const updatedStatusProduct = await productRepository.updateProductStatus(
     id,
@@ -216,11 +244,14 @@ export const changeProductStatusService = async (id, status) => {
   return updatedStatusProduct;
 };
 
-export const deleteProductService = async (id) => {
+export const deleteProductService = async (id, currentUser) => {
   const product = await productRepository.getProductById(id);
   if (!product) {
     throw new AppError("Producto no encontrado", 404);
   }
+
+  await ensureProductOwnership(id, currentUser);
+
   const deleted = await productRepository.deleteProduct(id);
   return deleted;
 };
@@ -235,11 +266,13 @@ export const getProductImagesService = async (productId) => {
   return productRepository.getProductImages(productId);
 };
 
-export const addProductImageService = async (productId, imageData) => {
+export const addProductImageService = async (productId, imageData, currentUser) => {
   const product = await productRepository.getProductById(productId);
   if (!product) {
     throw new AppError("Producto no encontrado", 404);
   }
+
+  await ensureProductOwnership(productId, currentUser);
 
   const newImage = await productRepository.addProductImage({
     product_id: productId,
@@ -251,11 +284,13 @@ export const addProductImageService = async (productId, imageData) => {
   return newImage;
 };
 
-export const deleteProductImageService = async (productId, imageId) => {
+export const deleteProductImageService = async (productId, imageId, currentUser) => {
   const product = await productRepository.getProductById(productId);
   if (!product) {
     throw new AppError("Producto no encontrado", 404);
   }
+
+  await ensureProductOwnership(productId, currentUser);
 
   const deleted = await productRepository.deleteProductImage(imageId, productId);
   if (!deleted) {

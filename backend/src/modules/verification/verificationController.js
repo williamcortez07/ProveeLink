@@ -206,7 +206,13 @@ export const handleWebhook = asyncWrapper(async (req, res) => {
       body: req.body,
     });
   } catch (err) {
-    logger.warn({ err }, "Error al verificar firma del webhook PayPal");
+    logger.warn({ err }, "Fallo en verificación de webhook PayPal");
+    if (err.status) throw err;
+    return res.status(400).json({
+      success: false,
+      message: "Error al verificar firma del webhook",
+      data: null,
+    });
   }
 
   if (!isValid) {
